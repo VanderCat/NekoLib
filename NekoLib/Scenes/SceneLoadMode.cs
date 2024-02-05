@@ -1,7 +1,10 @@
 ﻿namespace NekoLib.Scenes;
 
+/// <summary>
+/// Scene Load Mode
+/// </summary>
 public enum SceneLoadMode
 {
-    Inclusice,
+    Inclusive,
     Exclusive
 }
