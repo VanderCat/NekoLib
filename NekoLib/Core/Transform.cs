@@ -96,7 +96,7 @@ public class Transform : Component, IEnumerable<Transform> {
     public Matrix4x4 World2LocalMatrix;
     
     private Matrix4x4 _matrix = Matrix4x4.Identity;
-    private Matrix4x4 GlobalMatrix => (_matrix*Parent?.GlobalMatrix) ?? _matrix;
+    public Matrix4x4 GlobalMatrix => (_matrix*Parent?.GlobalMatrix) ?? _matrix;
 
     /// <summary>
     /// How many children this transform has
