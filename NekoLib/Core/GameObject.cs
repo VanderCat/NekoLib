@@ -140,6 +140,7 @@ public class GameObject : Object {
     }
 
     public void Update() {
+        SendMessage("StartIfNeeded");
         SendMessage("Update");// FIXME: I think reflection will be slow but whatever/will work fine for now
         SendMessage("LateUpdate");
     }
@@ -151,5 +152,8 @@ public class GameObject : Object {
 
     public void Initialize() {
         SendMessage("Awake");
+        foreach (var component in _components) {
+            component._awoke = true;
+        }
     }
 }

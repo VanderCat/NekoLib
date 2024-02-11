@@ -38,4 +38,13 @@ public abstract class Component : Object {
     }
     
     public string ToString() => $"{nameof(Transform)} of {GameObject.Name}";
+
+    internal bool _awoke = false;
+    internal bool _started = false;
+
+    private void StartIfNeeded() {
+        if (!_awoke || _started) return;
+        Invoke("Start");
+        _started = true;
+    }
 }
