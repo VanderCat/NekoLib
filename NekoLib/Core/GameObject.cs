@@ -10,6 +10,8 @@ namespace NekoLib.Core;
 /// </para>
 /// </summary>
 public class GameObject : Object {
+    public bool Initialized { get; private set; } = false;
+
     /// <summary>
     /// Is this <c>GameObject</c> is active or not.
     /// </summary>
@@ -89,6 +91,10 @@ public class GameObject : Object {
             GameObject = this
         };
         _components.Add(component);
+        if (Initialized)  {
+            component.Invoke("Awake");
+            component._awoke = true;
+        }
         return component;
     }
 
@@ -151,6 +157,7 @@ public class GameObject : Object {
     }
 
     public void Initialize() {
+        Initialized = true;
         SendMessage("Awake");
         foreach (var component in _components) {
             component._awoke = true;
