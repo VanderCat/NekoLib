@@ -52,51 +52,31 @@ public class Transform : Component, IEnumerable<Transform> {
     /// Add setters to be more inline with unity
     /// </todo>
     public Quaternion Rotation => Quaternion.CreateFromRotationMatrix(GlobalMatrix);
-    
-    private Vector3 _localScale = Vector3.One;
-    private Vector3 _localPosition = Vector3.Zero;
-    private Quaternion _localRotation = Quaternion.Identity;
 
     /// <summary>
     /// Local Scale of the GameObject
     /// </summary>
-    public Vector3 LocalScale {
-        get => _localScale;
-        set {
-            _localScale = value;
-            RecalculateMatrix();
-        }
-    }
+    public Vector3 LocalScale { get; set; } = Vector3.One;
 
     /// <summary>
     /// Position in Parent's space if any otherwise global position
     /// </summary>
-    public Vector3 LocalPosition {
-        get => _localPosition;
-        set {
-            _localPosition = value;
-            RecalculateMatrix();
-        }
-    }
+    public Vector3 LocalPosition { get; set; } = Vector3.Zero;
 
     /// <summary>
     /// Local Rotation of the GameObject
     /// </summary>
-    public Quaternion LocalRotation {
-        get => _localRotation;
-        set {
-            _localRotation = value;
-            RecalculateMatrix();
-        }
-    }
+    public Quaternion LocalRotation { get; set; } = Quaternion.Identity;
 
     /// <summary>
     /// A matrix to convert from world to local
     /// </summary>
     public Matrix4x4 World2LocalMatrix;
     
-    private Matrix4x4 _matrix = Matrix4x4.Identity;
-    public Matrix4x4 GlobalMatrix => (_matrix*Parent?.GlobalMatrix) ?? _matrix;
+    private Matrix4x4 ModelMatrix =>
+        Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateFromQuaternion(LocalRotation) *
+                                Matrix4x4.CreateTranslation(LocalPosition);
+    public Matrix4x4 GlobalMatrix => (ModelMatrix*Parent?.GlobalMatrix) ?? ModelMatrix;
 
     /// <summary>
     /// How many children this transform has
@@ -118,11 +98,6 @@ public class Transform : Component, IEnumerable<Transform> {
     /// <returns>Transform of this child</returns>
     public Transform GetChild(int index) {
         return _children[index];
-    }
-
-    private void RecalculateMatrix() {
-        _matrix = Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateFromQuaternion(LocalRotation) *
-            Matrix4x4.CreateTranslation(LocalPosition);
     }
 
     public new string ToString() => $"{base.ToString()}:\n  Pos: {Position}\n  Rot: {Rotation.GetEulerAngles()}\n  Scale: {LocalScale}";
