@@ -74,9 +74,8 @@ public class Transform : Component, IEnumerable<Transform> {
     public Matrix4x4 World2LocalMatrix;
     
     private Matrix4x4 ModelMatrix =>
-        Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateFromQuaternion(LocalRotation) *
-                                Matrix4x4.CreateTranslation(LocalPosition);
-    public Matrix4x4 GlobalMatrix => (ModelMatrix*Parent?.GlobalMatrix) ?? ModelMatrix;
+        Matrix4x4.CreateTranslation(LocalPosition)* Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale);
+    public Matrix4x4 GlobalMatrix => (Parent?.GlobalMatrix*ModelMatrix) ?? ModelMatrix;
 
     /// <summary>
     /// How many children this transform has
@@ -84,8 +83,8 @@ public class Transform : Component, IEnumerable<Transform> {
     public int ChildrenCount => _children.Count;
     
     public Vector3 Up => Vector3.Transform(Vector3.UnitY, Rotation);
-    public Vector3 Forward => Vector3.Transform(Vector3.UnitX, Rotation);
-    public Vector3 Right => Vector3.Transform(Vector3.UnitZ, Rotation);
+    public Vector3 Forward => Vector3.Transform(-Vector3.UnitZ, Rotation);
+    public Vector3 Right => Vector3.Transform(Vector3.UnitX, Rotation);
     
     public Vector3 Down => -Up;
     public Vector3 Backward => -Forward;
