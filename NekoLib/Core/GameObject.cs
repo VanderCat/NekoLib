@@ -128,9 +128,10 @@ public class GameObject : Object {
     /// Calls the method on every Component in this GameObject.
     /// </summary>
     /// <param name="methodName">Name of the method to call</param>
-    public void SendMessage(string methodName) {
+    /// <param name="o">Addition argument to call</param>
+    public void SendMessage(string methodName, object? o = null) {
         foreach (var component in _components) {
-            component.Invoke(methodName);
+            component.Invoke(methodName, o);
         }
     }
 
@@ -138,11 +139,12 @@ public class GameObject : Object {
     /// Calls the method on every Component in this GameObject and its children
     /// </summary>
     /// <param name="methodName">Name of the method to call</param>
-    public void Broadcast(string methodName) {
+    /// <param name="o">Addition argument to broadcast</param>
+    public void Broadcast(string methodName, object? o = null) {
         foreach (var child in Transform) {
-            child.Broadcast(methodName);
+            child.Broadcast(methodName, o);
         }
-        SendMessage(methodName);
+        SendMessage(methodName, o);
     }
 
     public void Update() {

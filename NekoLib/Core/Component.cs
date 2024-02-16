@@ -23,18 +23,19 @@ public abstract class Component : Object {
     public Transform Transform => GameObject.Transform;
 
     /// <summary>
-    /// Alias for <c>this.GameObject.Broadcast(string)</c>
+    /// Alias for <c>this.GameObject.Broadcast(string, object o)</c>
     /// </summary>
-    public void Broadcast(string methodName) => GameObject.Broadcast(methodName);
+    public void Broadcast(string methodName, object? o = null) => GameObject.Broadcast(methodName, o);
     
     /// <summary>
     /// Find and run Method inside this Component
     /// </summary>
     /// <param name="methodName">Name of the method to run</param>
-    public void Invoke(string methodName) {
+    /// <param name="o">Addition argument to run</param>
+    public void Invoke(string methodName, object? o = null) {
         var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         
-        method?.Invoke(this, null);
+        method?.Invoke(this, o is null ? null : new []{o});
     }
     
     public string ToString() => $"{nameof(Transform)} of {GameObject.Name}";
