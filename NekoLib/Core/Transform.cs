@@ -100,6 +100,12 @@ public class Transform : Component, IEnumerable<Transform> {
     }
 
     public new string ToString() => $"{base.ToString()}:\n  Pos: {Position}\n  Rot: {Rotation.GetEulerAngles()}\n  Scale: {LocalScale}";
+
+    [Obsolete("Unfinished. Do not use.")]
+    public void LookAt(Vector3 pos) {
+        var mat = Matrix4x4.CreateLookTo(Vector3.Zero, Vector3.Normalize(pos-Position), Vector3.UnitY);
+        LocalRotation = Quaternion.CreateFromRotationMatrix(mat);
+    }
 }
 
 internal class TransformEnumerator : IEnumerator<Transform> {
@@ -111,7 +117,7 @@ internal class TransformEnumerator : IEnumerator<Transform> {
     
     public bool MoveNext() {
         Cursor++;
-        return _transform.ChildrenCount >= Cursor;
+        return _transform.ChildrenCount > Cursor;
     }
 
     public void Reset() {

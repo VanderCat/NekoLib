@@ -1,4 +1,5 @@
-﻿using NekoLib.Scenes;
+﻿using System.Collections.Immutable;
+using NekoLib.Scenes;
 
 namespace NekoLib.Core; 
 /// <summary>
@@ -79,6 +80,7 @@ public class GameObject : Object {
     public GameObject() {
         Transform = new Transform(){GameObject = this};
         Scene.GameObjects.Add(this);
+        Name = "GameObject";
     }
 
     /// <summary>
@@ -105,6 +107,10 @@ public class GameObject : Object {
     /// <returns>An array of component instances of a given type</returns>
     public TComponent[] GetComponents<TComponent>() where TComponent : Component, new() {
         return _components.OfType<TComponent>().ToArray();
+    }
+
+    public Component[] GetComponents() {
+        return _components.ToArray();
     }
     
     /// <summary>

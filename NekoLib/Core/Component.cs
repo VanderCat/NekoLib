@@ -38,7 +38,7 @@ public abstract class Component : Object {
         method?.Invoke(this, o is null ? null : new []{o});
     }
     
-    public string ToString() => $"{nameof(Transform)} of {GameObject.Name}";
+    public string ToString() => $"{GetType().Name} of {GameObject.Name}";
 
     internal bool _awoke = false;
     internal bool _started = false;
