@@ -17,7 +17,7 @@ public abstract class Object : IDisposable{
 
     public new string ToString() => Name;
     
-    public void Dispose() {
+    public virtual void Dispose() {
         
     }
 }

@@ -43,7 +43,7 @@ public class Transform : Component, IEnumerable<Transform> {
     /// <todo>
     /// Add setters to be more inline with unity
     /// </todo>
-    public Vector3 Position => GlobalMatrix.Translation;
+    public Vector3 Position => Vector3.Transform(Vector3.Zero, GlobalMatrix);
 
     /// <summary>
     /// Global Rotation
@@ -74,7 +74,7 @@ public class Transform : Component, IEnumerable<Transform> {
     public Matrix4x4 World2LocalMatrix;
     
     private Matrix4x4 ModelMatrix =>
-        Matrix4x4.CreateTranslation(LocalPosition)* Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale);
+        Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateTranslation(LocalPosition);
     public Matrix4x4 GlobalMatrix => (Parent?.GlobalMatrix*ModelMatrix) ?? ModelMatrix;
 
     /// <summary>

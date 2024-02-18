@@ -158,7 +158,7 @@ public class GameObject : Object {
         SendMessage("Update");// FIXME: I think reflection will be slow but whatever/will work fine for now
         SendMessage("LateUpdate");
     }
-    
+
     public void Draw() {
         SendMessage("Draw");
         SendMessage("DrawGui");
