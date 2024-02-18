@@ -13,9 +13,9 @@ public abstract class Component : Object {
     public GameObject GameObject { get; internal set; }
 
     /// <summary>
-    /// Tag of the component
+    /// Tag of the gameObject this component part of
     /// </summary>
-    public string Tag = "";
+    public string Tag => GameObject.Tag;
 
     /// <summary>
     /// Alias for this.GameObject.Transform
