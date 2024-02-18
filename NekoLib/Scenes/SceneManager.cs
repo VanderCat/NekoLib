@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Reflection;
 
 namespace NekoLib.Scenes;
 
@@ -125,6 +126,16 @@ public static class SceneManager
         for (var index = 0; index < _scenes.Count; index++) {
             var scene = _scenes[index];
             scene.Draw();
+        }
+    }
+
+    public static void InvokeScene(string name, object? payload = null) {
+        for (var index = 0; index < _scenes.Count; index++) {
+            var scene = _scenes[index];
+            scene.GetType()
+                .GetMethod(name,
+                    BindingFlags.Default | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                ?.Invoke(scene, payload is null ? null : new[] {payload});
         }
     }
 }
