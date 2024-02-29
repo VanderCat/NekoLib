@@ -123,6 +123,46 @@ public class GameObject : Object {
     }
     
     /// <summary>
+    /// Check if GameObject tree have a component of a given type
+    /// </summary>
+    /// <typeparam name="T">A Component type</typeparam>
+    public bool HasComponentInChildren<TComponent>() where TComponent : Component, new() {
+        return GetComponentsInChildren<TComponent>().Any();
+    }
+
+    /// <summary>
+    /// Get all component instances of a given type in GameObject tree
+    /// </summary>
+    /// <typeparam name="TComponent">A Component type</typeparam>
+    /// <returns>An array of component instances of a given type</returns>
+    public TComponent[] GetComponentsInChildren<TComponent>() where TComponent : Component, new() {
+        var a = _components.OfType<TComponent>();
+        foreach (var child in Transform) {
+            a = a.Concat(child.GameObject._components.OfType<TComponent>());
+        }
+
+        return a.ToArray();
+    }
+
+    public Component[] GetComponentsInChildren() {
+        var a = _components.AsEnumerable();
+        foreach (var child in Transform) {
+            a = a.Concat(child.GameObject._components);
+        }
+
+        return a.ToArray();
+    }
+    
+    /// <summary>
+    /// Get first component instance of a given type in GameObject tree
+    /// </summary>
+    /// <typeparam name="TComponent">A Component type</typeparam>
+    /// <returns>Component instance of a given type</returns>
+    public TComponent GetComponentInChildren<TComponent>() where TComponent : Component, new() {
+        return GetComponentsInChildren<TComponent>()[0];
+    }
+    
+    /// <summary>
     /// Check if GameObject have a component of a given type
     /// </summary>
     /// <typeparam name="T">A Component type</typeparam>
