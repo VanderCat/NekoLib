@@ -21,9 +21,8 @@ public class GameObject : Object {
     /// <summary>
     /// Is this <c>GameObject</c> AND it's parent is active. If it is not it will not update <c>Behaviour</c> derived components.
     /// </summary>
-    /// <remarks> Not Yet Implemented </remarks>
     public bool Active {
-        get => ActiveSelf;
+        get => (Transform.Parent is null || Transform.Parent.GameObject.Active)&&ActiveSelf;
         set => ActiveSelf = value;
     }
 
@@ -77,10 +76,10 @@ public class GameObject : Object {
     /// <todo>
     /// maybe allow for scene index specification?
     /// </todo>
-    public GameObject() {
+    public GameObject(string name = "GameObject") {
         Transform = new Transform(){GameObject = this};
         Scene.GameObjects.Add(this);
-        Name = "GameObject";
+        Name = name;
     }
 
     /// <summary>

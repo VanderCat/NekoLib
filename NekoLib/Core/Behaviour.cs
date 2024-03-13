@@ -1,4 +1,6 @@
-﻿namespace NekoLib.Core; 
+﻿using System.Reflection;
+
+namespace NekoLib.Core; 
 
 /// <summary>
 /// A component that can be turned off
@@ -14,4 +16,14 @@ public abstract class Behaviour : Component {
     /// </summary>
     public bool IsActiveAndEnabled => GameObject.Active && Enabled;
     
+    /// <summary>
+    /// Find and run Method inside this Component
+    /// </summary>
+    /// <param name="methodName">Name of the method to run</param>
+    /// <param name="o">Addition argument to run</param>
+    public override void Invoke(string methodName, object? o = null) {
+        var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        if (IsActiveAndEnabled)
+            method?.Invoke(this, o is null ? null : new []{o});
+    }
 }
