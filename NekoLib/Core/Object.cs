@@ -3,7 +3,7 @@
 /// <summary>
 /// Base object to derive from, provides name and Id for stuff
 /// </summary>
-public abstract class Object : IDisposable{
+public abstract class Object : IDisposable {
     /// <summary>
     /// Name of the object
     /// </summary>
@@ -19,5 +19,9 @@ public abstract class Object : IDisposable{
     
     public virtual void Dispose() {
         
+    }
+
+    public static void Destroy(Object obj, float delay = 0f) {
+        Timer.Global.After(delay, function => obj.Dispose());
     }
 }

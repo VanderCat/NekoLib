@@ -43,7 +43,7 @@ public abstract class Component : Object {
     internal bool _awoke = false;
     internal bool _started = false;
 
-    private void StartIfNeeded() {
+    public void StartIfNeeded() {
         if (!_awoke || _started) return;
         Invoke("Start");
         _started = true;

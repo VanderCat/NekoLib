@@ -210,4 +210,12 @@ public class GameObject : Object {
             component._awoke = true;
         }
     }
+
+    public override void Dispose() {
+        foreach (var component in _components) {
+            component.Dispose();
+        }
+        base.Dispose();
+        Scene.GameObjects.Remove(this);
+    }
 }

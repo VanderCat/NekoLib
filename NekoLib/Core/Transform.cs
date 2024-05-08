@@ -36,14 +36,23 @@ public class Transform : Component, IEnumerable<Transform> {
     private List<Transform> _children = new();
 
     //public Vector3 Scale;
-    
+
     /// <summary>
     /// Position in the world
     /// </summary>
     /// <todo>
     /// Add setters to be more inline with unity
     /// </todo>
-    public Vector3 Position => Vector3.Transform(Vector3.Zero, GlobalMatrix);
+    public Vector3 Position {
+        get => Vector3.Transform(Vector3.Zero, GlobalMatrix);
+        set {
+            var inverseSucceded = Matrix4x4.Invert(GlobalMatrix, out var invertedGlobalMatrix);
+            if (inverseSucceded)
+                LocalPosition = Vector3.Transform(value, invertedGlobalMatrix);
+            else
+                throw new ArithmeticException("Could not set global position, due to illegal matrix???"); //todo: more appropriate message
+        }
+    }
 
     /// <summary>
     /// Global Rotation
@@ -51,7 +60,16 @@ public class Transform : Component, IEnumerable<Transform> {
     /// <todo>
     /// Add setters to be more inline with unity
     /// </todo>
-    public Quaternion Rotation => Quaternion.CreateFromRotationMatrix(GlobalMatrix);
+    public Quaternion Rotation {
+        get => Quaternion.CreateFromRotationMatrix(GlobalMatrix);
+        set {
+            var inverseSucceded = Matrix4x4.Invert(GlobalMatrix, out var invertedGlobalMatrix);
+            if (inverseSucceded)
+                LocalRotation = Quaternion.CreateFromRotationMatrix(invertedGlobalMatrix)*value;
+            else
+                throw new ArithmeticException("Could not set global rotation, due to illegal matrix???");
+        }
+    }
 
     /// <summary>
     /// Local Scale of the GameObject
