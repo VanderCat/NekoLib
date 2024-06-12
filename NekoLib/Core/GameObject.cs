@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using NekoLib.Scenes;
+﻿using NekoLib.Scenes;
 
 namespace NekoLib.Core; 
 /// <summary>

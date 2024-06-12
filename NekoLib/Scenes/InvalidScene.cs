@@ -24,4 +24,6 @@ internal class InvalidScene : IScene
     {
         throw new InvalidSceneException();
     }
+
+    public void Dispose() { }
 }

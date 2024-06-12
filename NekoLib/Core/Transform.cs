@@ -121,7 +121,7 @@ public class Transform : Component, IEnumerable<Transform> {
 
     [Obsolete("Unfinished. Do not use.")]
     public void LookAt(Vector3 pos) {
-        var mat = Matrix4x4.CreateLookTo(Vector3.Zero, Vector3.Normalize(pos-Position), Vector3.UnitY);
+        var mat = Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.Normalize(pos-Position), Vector3.UnitY); //fixme
         LocalRotation = Quaternion.CreateFromRotationMatrix(mat);
     }
 }

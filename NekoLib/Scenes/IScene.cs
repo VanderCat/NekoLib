@@ -5,7 +5,7 @@ namespace NekoLib.Scenes;
 /// <summary>
 /// Implement this in your scene
 /// </summary>
-public interface IScene
+public interface IScene : IDisposable
 {
     /// <summary>
     /// Name of the Scene
@@ -41,4 +41,13 @@ public interface IScene
     /// Run every frame to draw
     /// </summary>
     public void Draw();
+
+    void IDisposable.Dispose() {
+        var currentGameObjects = new GameObject[GameObjects.Count];
+        GameObjects.CopyTo(currentGameObjects);
+        foreach (var gameObject in currentGameObjects) {
+            gameObject.Dispose();
+        }
+        GC.SuppressFinalize(this);
+    }
 }

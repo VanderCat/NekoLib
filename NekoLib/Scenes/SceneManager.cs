@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace NekoLib.Scenes;
 
@@ -13,7 +12,7 @@ public static class SceneManager
     /// <summary>
     /// List of all loaded scenes
     /// </summary>
-    public static ImmutableList<IScene> Scenes => _scenes.ToImmutableList();
+    public static List<IScene> Scenes => _scenes;
 
     /// <summary>
     /// Current active scene index
@@ -85,12 +84,14 @@ public static class SceneManager
     /// Unload scene instance
     /// </summary>
     /// <param name="scene">Scene instance</param>
+    /// <param name="dispose">Also disopose instance</param>
     /// <exception cref="InvalidSceneException">You tried to unload an instance of <c>InvalidScene</c></exception>
-    public static void UnloadScene(IScene scene)
+    public static void UnloadScene(IScene scene, bool dispose = false)
     {
         if (scene.GetType() == typeof(InvalidScene))
             throw new  InvalidSceneException();
         _scenes.Remove(scene);
+        if (dispose) scene.Dispose();
         RebuildIndexes();
         ActiveSceneIndex = _scenes.Count - 1;
     }
