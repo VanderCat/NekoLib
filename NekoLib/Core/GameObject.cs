@@ -121,6 +121,24 @@ public class GameObject : Object {
     }
     
     /// <summary>
+    /// Get first component instance of a given type on GameObject
+    /// </summary>
+    /// <param name="type">A Component type</param>
+    /// <returns>Component instance of a given type</returns>
+    public Component? GetComponent(Type type) {
+        return _components.FirstOrDefault(t => t.GetType()==type);
+    }
+    
+    /// <summary>
+    /// Get first component instance of a given type on GameObject
+    /// </summary>
+    /// <param name="id">A Component id</param>
+    /// <returns>Component instance with a given id, if found</returns>
+    public Component? GetComponentById(Guid id) {
+        return _components.FirstOrDefault(t => t.Id==id);
+    }
+    
+    /// <summary>
     /// Check if GameObject tree have a component of a given type
     /// </summary>
     /// <typeparam name="T">A Component type</typeparam>
@@ -166,6 +184,13 @@ public class GameObject : Object {
     /// <typeparam name="T">A Component type</typeparam>
     public bool HasComponent<T>() where T : Component, new() {
         return _components.OfType<T>().Any();
+    }
+    /// <summary>
+    /// Check if GameObject have a component of a given type
+    /// </summary>
+    /// <param name="type">A Component type</param>
+    public bool HasComponent(Type type) {
+        return _components.Any(t => t.GetType() == type);
     }
 
     /// <summary>
