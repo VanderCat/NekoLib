@@ -86,7 +86,7 @@ public static class SceneManager
     /// <param name="scene">Scene instance</param>
     /// <param name="dispose">Also disopose instance</param>
     /// <exception cref="InvalidSceneException">You tried to unload an instance of <c>InvalidScene</c></exception>
-    public static void UnloadScene(IScene scene, bool dispose = false)
+    public static void UnloadScene(IScene scene, bool dispose = true)
     {
         if (scene.GetType() == typeof(InvalidScene))
             throw new  InvalidSceneException();
