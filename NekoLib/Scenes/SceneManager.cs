@@ -109,8 +109,10 @@ public static class SceneManager
     /// </summary>
     /// <param name="forced">Unload all anyway</param>
     public static void UnloadAllScenes(bool forced = false) {
-        for (var index = 0; index < _scenes.Count; index++) {
-            var scene = _scenes[index];
+        var currentScenes = new IScene[_scenes.Count];
+        _scenes.CopyTo(currentScenes);
+        
+        foreach (var scene in currentScenes) {
             if (scene.DestroyOnLoad || forced)
                 UnloadScene(scene);
         }
@@ -138,5 +140,12 @@ public static class SceneManager
                     BindingFlags.Default | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 ?.Invoke(scene, payload is null ? null : new[] {payload});
         }
+    }
+
+    public static void SetSceneActive(IScene scene) {
+        if (!_scenes.Contains(scene)) {
+            throw new ArgumentException("Attempt to load an not yet loaded scene");
+        }
+        ActiveSceneIndex = scene.Index;
     }
 }
