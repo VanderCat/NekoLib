@@ -13,9 +13,14 @@ public abstract class Component : Object {
     public GameObject GameObject { get; internal set; }
 
     /// <summary>
-    /// Tag of the gameObject this component part of
+    /// Tags of the gameObject this component part of
     /// </summary>
-    public string Tag => GameObject.Tag;
+    public HashSet<string> Tags => GameObject.Tags;
+
+    /// <summary>
+    /// All tags from all parent tree this component part of
+    /// </summary>
+    public HashSet<string> AllTags => GameObject.AllTags;
 
     /// <summary>
     /// Alias for this.GameObject.Transform

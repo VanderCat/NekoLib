@@ -47,13 +47,26 @@ public class GameObject : Object {
     public IScene Scene { get; protected set; } = SceneManager.ActiveScene;
 
     /// <summary>
-    /// The tag of this GameObject.
+    /// Tags of this GameObject.
     ///
     /// <para>
     /// You can use this to differentiate this GameObject from anything
     /// </para>
     /// </summary>
-    public string Tag = "";
+    public HashSet<string> Tags = new();
+
+    /// <summary>
+    /// All tags from all parent tree
+    /// </summary>
+    public HashSet<string> AllTags {
+        get {
+            if (Transform.Parent is not null) {
+                return Transform.Parent.AllTags.Concat(Tags).ToHashSet();
+            }
+
+            return Tags;
+        }
+    }
 
     /// <summary>
     /// Transform of the GameObject
