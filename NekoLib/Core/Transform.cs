@@ -44,7 +44,7 @@ public class Transform : Component, IEnumerable<Transform> {
     /// Add setters to be more inline with unity
     /// </todo>
     public Vector3 Position {
-        get => Vector3.Transform(Vector3.Zero, GlobalMatrix);
+        get => GlobalMatrix.Translation;
         set {
             var inverseSucceded = Matrix4x4.Invert(GlobalMatrix, out var invertedGlobalMatrix);
             if (inverseSucceded)
