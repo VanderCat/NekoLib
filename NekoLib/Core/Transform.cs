@@ -40,30 +40,34 @@ public class Transform : Component, IEnumerable<Transform> {
     /// <summary>
     /// Position in the world
     /// </summary>
-    /// <todo>
-    /// Add setters to be more inline with unity
-    /// </todo>
     public Vector3 Position {
         get => GlobalMatrix.Translation;
         set {
-            var inverseSucceded = Matrix4x4.Invert(GlobalMatrix, out var invertedGlobalMatrix);
+            if (Parent is null) {
+                LocalPosition = value;
+                Console.WriteLine(LocalScale);
+                return;
+            } 
+            var inverseSucceded = Matrix4x4.Invert(Parent.GlobalMatrix, out var invertedGlobalMatrix);
             if (inverseSucceded)
                 LocalPosition = Vector3.Transform(value, invertedGlobalMatrix);
             else
                 throw new ArithmeticException("Could not set global position, due to illegal matrix???"); //todo: more appropriate message
+            Console.WriteLine(LocalPosition);
         }
     }
 
     /// <summary>
     /// Global Rotation
     /// </summary>
-    /// <todo>
-    /// Add setters to be more inline with unity
-    /// </todo>
     public Quaternion Rotation {
         get => Quaternion.CreateFromRotationMatrix(GlobalMatrix);
         set {
-            var inverseSucceded = Matrix4x4.Invert(GlobalMatrix, out var invertedGlobalMatrix);
+            if (Parent is null) {
+                LocalRotation = value;
+                return;
+            } 
+            var inverseSucceded = Matrix4x4.Invert(Parent.GlobalMatrix, out var invertedGlobalMatrix);
             if (inverseSucceded)
                 LocalRotation = Quaternion.CreateFromRotationMatrix(invertedGlobalMatrix)*value;
             else
