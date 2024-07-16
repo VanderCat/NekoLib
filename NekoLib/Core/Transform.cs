@@ -45,7 +45,6 @@ public class Transform : Component, IEnumerable<Transform> {
         set {
             if (Parent is null) {
                 LocalPosition = value;
-                Console.WriteLine(LocalScale);
                 return;
             } 
             var inverseSucceded = Matrix4x4.Invert(Parent.GlobalMatrix, out var invertedGlobalMatrix);
@@ -53,7 +52,6 @@ public class Transform : Component, IEnumerable<Transform> {
                 LocalPosition = Vector3.Transform(value, invertedGlobalMatrix);
             else
                 throw new ArithmeticException("Could not set global position, due to illegal matrix???"); //todo: more appropriate message
-            Console.WriteLine(LocalPosition);
         }
     }
 
@@ -61,15 +59,20 @@ public class Transform : Component, IEnumerable<Transform> {
     /// Global Rotation
     /// </summary>
     public Quaternion Rotation {
-        get => Quaternion.CreateFromRotationMatrix(GlobalMatrix);
+        get {
+            Matrix4x4.Decompose(GlobalMatrix, out _, out var rotation, out _);
+            return rotation;
+        }
         set {
             if (Parent is null) {
                 LocalRotation = value;
                 return;
             } 
             var inverseSucceded = Matrix4x4.Invert(Parent.GlobalMatrix, out var invertedGlobalMatrix);
-            if (inverseSucceded)
-                LocalRotation = Quaternion.CreateFromRotationMatrix(invertedGlobalMatrix)*value;
+            if (inverseSucceded) {
+                Matrix4x4.Decompose(invertedGlobalMatrix, out _, out var rotation, out _);
+                LocalRotation = rotation*value;
+            }
             else
                 throw new ArithmeticException("Could not set global rotation, due to illegal matrix???");
         }
@@ -94,10 +97,10 @@ public class Transform : Component, IEnumerable<Transform> {
     /// A matrix to convert from world to local
     /// </summary>
     public Matrix4x4 World2LocalMatrix;
-    
-    private Matrix4x4 ModelMatrix =>
+
+    public Matrix4x4 ModelMatrix =>
         Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateTranslation(LocalPosition);
-    public Matrix4x4 GlobalMatrix => (Parent?.GlobalMatrix*ModelMatrix) ?? ModelMatrix;
+    public Matrix4x4 GlobalMatrix => (ModelMatrix*Parent?.GlobalMatrix) ?? ModelMatrix;
 
     /// <summary>
     /// How many children this transform has
