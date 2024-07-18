@@ -212,7 +212,13 @@ public class GameObject : Object {
     /// <param name="methodName">Name of the method to call</param>
     /// <param name="o">Addition argument to call</param>
     public void SendMessage(string methodName, object? o = null) {
-        foreach (var component in _components) {
+        _SendMessage(_componentsThisFrame, methodName, o);
+    }
+
+    private Component[] _componentsThisFrame = Array.Empty<Component>();
+    
+    private static void _SendMessage(Component[] components, string methodName, object? o = null) {
+        foreach (var component in components) {
             component.Invoke(methodName, o);
         }
     }
@@ -226,25 +232,32 @@ public class GameObject : Object {
         foreach (var child in Transform) {
             child.Broadcast(methodName, o);
         }
-        SendMessage(methodName, o);
+        _SendMessage(_componentsThisFrame, methodName, o);
     }
 
     public void Update() {
-        SendMessage("StartIfNeeded");
-        SendMessage("Update");// FIXME: I think reflection will be slow but whatever/will work fine for now
-        SendMessage("LateUpdate");
+        _componentsThisFrame = new Component[_components.Count];
+        _components.CopyTo(_componentsThisFrame);
+        _SendMessage(_componentsThisFrame, "StartIfNeeded");
+        _SendMessage(_componentsThisFrame, "Update");
+        _SendMessage(_componentsThisFrame, "LateUpdate");
     }
 
     public void Draw() {
-        SendMessage("Draw");
-        SendMessage("DrawGui");
+        _SendMessage(_componentsThisFrame, "Draw");
+        _SendMessage(_componentsThisFrame, "DrawGui");
     }
 
     public void Initialize() {
         Initialized = true;
-        SendMessage("Awake");
+        _SendMessage(_components.ToArray(),"Awake"); //TODO: Automatically initialize components added while Awake
         foreach (var component in _components) {
             component._awoke = true;
+        }
+
+        foreach (var behaviour in _components.OfType<Behaviour>()) {
+            if (behaviour is null) continue;
+            if (behaviour.Enabled) behaviour.Enabled = behaviour.Enabled; // Auto run hook
         }
     }
 

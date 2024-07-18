@@ -6,11 +6,20 @@ namespace NekoLib.Core;
 /// A component that can be turned off
 /// </summary>
 public abstract class Behaviour : Component {
+    public bool _enabled = true;
+
     /// <summary>
     /// Is this component enabled or not
     /// </summary>
-    public bool Enabled = true;
-    
+    public bool Enabled {
+        get => _enabled;
+        set {
+            _enabled = value;
+            if (value) base.Invoke("OnEnabled");
+            else base.Invoke("OnDisabled");
+        }
+    }
+
     /// <summary>
     /// Is this component enabled AND parent GameObject is active too. If it is false the behaviour will not update.
     /// </summary>
