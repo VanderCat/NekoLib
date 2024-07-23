@@ -235,7 +235,7 @@ public class GameObject : Object {
         _SendMessage(_componentsThisFrame, methodName, o);
     }
 
-    public void Update() {
+    public virtual void Update() {
         _componentsThisFrame = new Component[_components.Count];
         _components.CopyTo(_componentsThisFrame);
         _SendMessage(_componentsThisFrame, "StartIfNeeded");
@@ -243,12 +243,12 @@ public class GameObject : Object {
         _SendMessage(_componentsThisFrame, "LateUpdate");
     }
 
-    public void Draw() {
+    public virtual void Draw() {
         _SendMessage(_componentsThisFrame, "Draw");
         _SendMessage(_componentsThisFrame, "DrawGui");
     }
 
-    public void Initialize() {
+    public virtual void Initialize() {
         Initialized = true;
         _SendMessage(_components.ToArray(),"Awake"); //TODO: Automatically initialize components added while Awake
         foreach (var component in _components) {
