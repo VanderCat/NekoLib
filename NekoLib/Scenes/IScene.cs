@@ -50,4 +50,7 @@ public interface IScene : IDisposable
         }
         GC.SuppressFinalize(this);
     }
+    
+    public GameObject[] RootGameObjects => 
+        GameObjects.Where(o => o.Transform.Parent is null).ToArray();
 }

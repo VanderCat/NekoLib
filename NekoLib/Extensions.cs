@@ -15,10 +15,6 @@ public static class Extensions {
         
         return angles;
     }
-    
-    public static List<GameObject> GetRootGameObjects(this IScene scene) {
-        return scene.GameObjects.Where(o => o.Transform.Parent is null).ToList();
-    }
 
     public static GameObject? GetGameObjectByName(this IScene scene, string name) {
         return scene.GameObjects.First(o => o.Name == name);
