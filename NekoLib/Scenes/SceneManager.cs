@@ -77,7 +77,6 @@ public static class SceneManager {
         ActiveSceneIndex = scene.Index;
         scene.Initialize();
         scene.Update(); //FIXME: Dirty hack: must we unload scene on a next frame?
-        OnSceneLoaded?.Invoke(scene);
     }
     
     /// <summary>
@@ -94,7 +93,6 @@ public static class SceneManager {
         if (dispose) scene.Dispose();
         RebuildIndexes();
         ActiveSceneIndex = _scenes.Count - 1;
-        OnSceneUnloaded?.Invoke(scene);
     }
     
     private static void RebuildIndexes()
