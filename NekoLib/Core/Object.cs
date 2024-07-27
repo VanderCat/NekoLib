@@ -8,7 +8,7 @@ public abstract class Object : IDisposable {
     /// Name of the object
     /// </summary>
     /// <remarks>this should be visible in hierarchy</remarks>
-    public string Name = "GameObject";
+    public string Name = "";
 
     /// <summary>
     /// A randomly generated id of the object

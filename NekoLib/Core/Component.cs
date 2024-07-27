@@ -53,4 +53,10 @@ public abstract class Component : Object {
         Invoke("Start");
         _started = true;
     }
+
+    public override void Dispose() {
+        base.Dispose();
+        GameObject._components.Remove(this);
+        GameObject = null;
+    }
 }

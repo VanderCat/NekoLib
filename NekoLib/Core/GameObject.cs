@@ -77,7 +77,7 @@ public class GameObject : Object {
     /// </see>
     public Transform Transform;
     
-    private List<Component> _components = new();
+    internal List<Component> _components = new();
     
     /// <summary>
     /// Create a GameObject and add it to scene
