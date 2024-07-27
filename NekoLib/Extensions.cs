@@ -17,7 +17,7 @@ public static class Extensions {
     }
 
     public static GameObject? GetGameObjectByName(this IScene scene, string name) {
-        return scene.GameObjects.First(o => o.Name == name);
+        return scene.GameObjects.FirstOrDefault(o => o.Name == name);
     }
     public static GameObject? GetGameObjectById(this IScene scene, Guid id) {
         return scene.GameObjects.FirstOrDefault(o => o.Id == id);
