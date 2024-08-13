@@ -262,7 +262,9 @@ public class GameObject : Object {
     }
 
     public override void Dispose() {
-        foreach (var component in _components) {
+        var currentComponents = new Component[_components.Count];
+        _components.CopyTo(currentComponents);
+        foreach (var component in currentComponents) {
             component.Dispose();
         }
         base.Dispose();
