@@ -1,13 +1,15 @@
 # NekoLib
-A collection of library agnostic Unity-like stuff
+A collection of library agnostic gamedev-like stuff
 
 > [!WARNING]  
-> It is not finished and i doubt it ever will! (though i hope so)
+> Beware of bugs
 
 ## Features
 1. Scene Management (implement serializing/etc. yourself)  
    just implement `IScene` and you created a scene! Next you can load it by using `SceneManagement.LoadScene(new Scene)`
-2. GameObjects + Components (and by extension Transform using vanilla .NET)
+2. Unity like GameObjects + Components
+3. Transform and Object graph
+4. Extendable Virtual Filesystem
 
 
 ## Example:
