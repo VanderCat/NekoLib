@@ -1,5 +1,3 @@
-using Lamoon.Filesystem;
-
 namespace NekoLib.Filesystem; 
 
 public interface IFile : IMounted {

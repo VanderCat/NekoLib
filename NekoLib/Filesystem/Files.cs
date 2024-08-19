@@ -1,5 +1,4 @@
-﻿using Lamoon.Filesystem;
-using NekoLib.Filesystem.Exceptions;
+﻿using NekoLib.Filesystem.Exceptions;
 using NekoLib.Logging;
 
 namespace NekoLib.Filesystem;

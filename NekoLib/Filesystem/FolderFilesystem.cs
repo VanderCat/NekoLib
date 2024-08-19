@@ -1,4 +1,3 @@
-using Lamoon.Filesystem;
 using NekoLib.Logging;
 
 namespace NekoLib.Filesystem; 
@@ -37,7 +36,10 @@ public class FolderFilesystem : IMountable {
     }
 
     public IFile CreateFile(string path) {
-        throw new NotImplementedException();
+        var dirName = Path.GetDirectoryName(path);
+        if (dirName is not null) Directory.CreateDirectory(dirName);
+        File.Create(path);
+        return GetFile(path);
     }
 
     public string[] ListDirectory(string path) {
