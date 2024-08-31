@@ -31,7 +31,7 @@ public abstract class Behaviour : Component {
     /// <param name="methodName">Name of the method to run</param>
     /// <param name="o">Addition argument to run</param>
     public override void Invoke(string methodName, object? o = null) {
-        var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        var method = GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
         if (IsActiveAndEnabled)
             method?.Invoke(this, o is null ? null : new []{o});
     }

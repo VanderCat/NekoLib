@@ -1,4 +1,5 @@
-﻿using NekoLib.Scenes;
+﻿using System.Text.RegularExpressions;
+using NekoLib.Scenes;
 
 namespace NekoLib.Core; 
 /// <summary>
@@ -267,5 +268,17 @@ public class GameObject : Object {
         }
         base.Dispose();
         Scene.GameObjects.Remove(this);
+    }
+
+    public static GameObject Find(string path) {
+        throw new NotImplementedException();
+        var stuff = Regex.Split(path, @"(?<!\\)\/").ToList();
+        if (Path.IsPathRooted(path)) {
+            foreach (var scene in SceneManager.Scenes) {
+                for (var i = 0; i < scene.RootGameObjects.Length; i++) {
+                    
+                }
+            }
+        }
     }
 }
