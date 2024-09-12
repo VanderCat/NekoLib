@@ -14,7 +14,6 @@ public class Timer {
             timerCopy.Add(timer);
         }
         foreach (var timer in timerCopy) {
-            timer.Time += dt;
             if (timer.Time > _time)
                 continue;
             _allHandles.Remove(timer);
