@@ -46,20 +46,52 @@ public static class Files {
         throw new Exception("There is no writable filesystem mounted");
     }
 
-    public static string[] ListDirectory(string path) {
+    public static IEnumerable<string> ListDirectories(string path) {
         if (_mounted.Count < 1)
             throw new NoFilesystemException();
         //TODO: add check if folder exists
-        List<string> allFiles = new();
+        HashSet<string> allFiles = new();
         for (int i = _mounted.Count - 1; i >= 0; i--) {
             try {
-                allFiles = allFiles.Concat(_mounted[i].ListDirectory(path)).ToList();
+                allFiles.UnionWith(_mounted[i].ListDirectories(path));
             }
             catch (Exception e) {
                 ILogger.Debug("listing failed with error: {0}", e);
             }
         }
 
-        return allFiles.ToArray();
+        return allFiles;
+    }
+    
+    public static IEnumerable<string> ListFiles(string path) {
+        if (_mounted.Count < 1)
+            throw new NoFilesystemException();
+        //TODO: add check if folder exists
+        HashSet<string> allFiles = new();
+        for (int i = _mounted.Count - 1; i >= 0; i--) {
+            try {
+                allFiles.UnionWith(_mounted[i].ListFiles(path));
+            }
+            catch (Exception e) {
+                ILogger.Debug("listing failed with error: {0}", e);
+            }
+        }
+
+        return allFiles;
+    }
+
+    /// <summary>
+    /// Untested
+    /// </summary>
+    public static bool IsDirectory(string path) {
+        for (int i = _mounted.Count - 1; i >= 0; i--) {
+            try {
+                if (_mounted[i].IsDirectory(path)) return true;
+            }
+            catch (Exception e) {
+                ILogger.Debug("Is direcotory failed with error: {0}", e);
+            }
+        }
+        return false;
     }
 }

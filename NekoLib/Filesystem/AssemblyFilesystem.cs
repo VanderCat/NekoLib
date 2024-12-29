@@ -43,17 +43,33 @@ public class AssemblyFilesystem : IMountable {
         throw new NotSupportedException();
     }
 
-    public string[] ListDirectory(string path) {
-        var assemblyNames = Assembly.GetManifestResourceNames();
-        var fsNames = new List<string>();
-        foreach (var name in assemblyNames) {
-            if (!name.StartsWith(RootNamespace)) continue;
-            var newName = TransfromPath(path);
-            var lastIdx = newName.LastIndexOf("/", StringComparison.Ordinal);
-            newName = newName.Remove(lastIdx).Insert(lastIdx, ".");
-            fsNames.Add(newName);
+    public IEnumerable<string> ListDirectories(string path) {
+        var fsNames = new HashSet<string>();
+        foreach (var name in ListFiles(path)) {
+            var newPath = Path.GetRelativePath(path, Path.GetDirectoryName(name));
+            if (newPath != ".")
+                fsNames.Add(newPath);
         }
         return fsNames.ToArray();
+    }
+    
+    public IEnumerable<string> ListFiles(string path) {
+        var assemblyNames = Assembly.GetManifestResourceNames();
+        var fsNames = new HashSet<string>();
+        foreach (var name in assemblyNames) {
+            if (!name.StartsWith(RootNamespace)) continue;
+            var newName = name.Replace(RootNamespace + ".", "").Replace(".", "/"); //todo what if this is a file without an extension?
+            var lastIdx = newName.LastIndexOf("/", StringComparison.Ordinal);
+            newName = newName.Remove(lastIdx, 1).Insert(lastIdx, ".");
+            if (newName.StartsWith(path))
+                fsNames.Add(newName);
+        }
+        return fsNames.ToArray();
+    }
+
+    public bool IsDirectory(string path) {
+        if (Path.HasExtension(path)) return false;
+        return Assembly.GetManifestResourceNames().Any(s => s.StartsWith(TransfromPath(path)));
     }
 
     public bool FileExists(string path) {

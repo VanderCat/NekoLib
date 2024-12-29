@@ -36,14 +36,30 @@ public class FolderFilesystem : IMountable {
     }
 
     public IFile CreateFile(string path) {
-        var dirName = Path.GetDirectoryName(path);
+        var dirName = Path.GetDirectoryName(Path.Combine(PhysicalPath, path));
         if (dirName is not null) Directory.CreateDirectory(dirName);
-        File.Create(path);
+        File.Create(Path.Combine(PhysicalPath, path));
         return GetFile(path);
     }
 
-    public string[] ListDirectory(string path) {
-        throw new NotImplementedException();
+    public IEnumerable<string> ListFiles(string path) {
+        var prev = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(PhysicalPath);
+        var files = Directory.EnumerateFiles(path);
+        Directory.SetCurrentDirectory(prev);
+        return files;
+    }
+
+    public IEnumerable<string> ListDirectories(string path) {
+        var prev = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(PhysicalPath);
+        var files = Directory.EnumerateDirectories(path);
+        Directory.SetCurrentDirectory(prev);
+        return files;
+    }
+    
+    public bool IsDirectory(string path) {
+        return File.GetAttributes(Path.Combine(PhysicalPath, path)).HasFlag(FileAttributes.Directory);
     }
 
     public bool FileExists(string path) {
