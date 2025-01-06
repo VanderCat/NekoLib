@@ -38,7 +38,7 @@ public class FolderFilesystem : IMountable {
     public IFile CreateFile(string path) {
         var dirName = Path.GetDirectoryName(Path.Combine(PhysicalPath, path));
         if (dirName is not null) Directory.CreateDirectory(dirName);
-        File.Create(Path.Combine(PhysicalPath, path));
+        using var stream = File.Create(Path.Combine(PhysicalPath, path));
         return GetFile(path);
     }
 
@@ -63,6 +63,6 @@ public class FolderFilesystem : IMountable {
     }
 
     public bool FileExists(string path) {
-        return GetFile(path).Exists();
+        return File.Exists(Path.Combine(PhysicalPath, path));
     }
 }
