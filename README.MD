@@ -1,4 +1,6 @@
 # NekoLib
+[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib)](https://www.nuget.org/packages/VanderCat.NekoLib)
+
 A collection of library agnostic gamedev-like stuff
 
 > [!WARNING]  

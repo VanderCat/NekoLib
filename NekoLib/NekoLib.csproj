@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
+        <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
@@ -9,11 +9,16 @@
         <Title>NekoLib</Title>
         <Authors>VanderCat</Authors>
         <Copyright>VanderCat</Copyright>
+        <PackageId>VanderCat.NekoLib</PackageId>
         <PackageProjectUrl>https://github.com/VanderCat/NekoLib</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/VanderCat/NekoLib</RepositoryUrl>
+        <RepositoryUrl>https://github.com/VanderCat/NekoLib.git</RepositoryUrl>
+        <PackageLicenseExpression>Zlib</PackageLicenseExpression>
         <Company>VanderCat</Company>
         <AssemblyVersion>0.6</AssemblyVersion>
         <FileVersion>0.6</FileVersion>
+        <Description>Micro-Unity</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageReadmeFile>content/README.MD</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
