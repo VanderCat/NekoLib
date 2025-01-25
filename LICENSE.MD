@@ -1,6 +1,6 @@
 # zlib License
 
-(C) 2024 VanderCat
+(C) 2024-2025 VanderCat
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages

@@ -4,13 +4,17 @@
         <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
-        <Description>Micro-Unity (Unity-like Entity Component System and Scenes)</Description>
-        <Title>NekoLib</Title>
+        <LangVersion>preview</LangVersion>
     </PropertyGroup>
+
     <ItemGroup>
-        <Content Include="..\README.MD">
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="README.MD">
             <Link>README.MD</Link>
         </Content>
     </ItemGroup>
+
 </Project>

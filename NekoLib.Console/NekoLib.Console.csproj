@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>NekoLib.Extra</RootNamespace>
+        <LangVersion>preview</LangVersion>
+        <Description>Source/Quake-like console subsystem</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="README.MD">
+            <Link>README.MD</Link>
+        </Content>
+    </ItemGroup>
+    
+</Project>
