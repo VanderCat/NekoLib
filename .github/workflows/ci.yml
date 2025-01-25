@@ -32,7 +32,7 @@ jobs:
         with:
           dotnet-version: 9.0.x
       - name: Restore dependencies
-        run: dotnet restore src
+        run: dotnet restore ${{matrix.libName}}
       - name: Build
         run: dotnet build -c Release --no-restore ${{matrix.libName}}
       - name: Generate NuGet package
