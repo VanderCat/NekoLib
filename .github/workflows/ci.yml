@@ -44,6 +44,7 @@ jobs:
       - name: upload NuGet Package As Artifact
         uses: actions/upload-artifact@v4
         with:
+          name: ${{matrix.libName}}
           path: nuget/*
       - name: upload NuGet Package As Release
         uses: softprops/action-gh-release@v1
