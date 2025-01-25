@@ -51,4 +51,5 @@ jobs:
         run: |
           dotnet nuget push \
             nuget/* \
-            --api-key ${{secrets.NUGET_API_KEY}}
+            --api-key ${{secrets.NUGET_API_KEY}} \
+            -s https://api.nuget.org/v3/index.json
