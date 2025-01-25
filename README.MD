@@ -1,9 +1,9 @@
 # NekoLib
-[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib?label=VanderCat.NekoLib)](https://www.nuget.org/packages/VanderCat.NekoLib)
-[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Console?label=VanderCat.NekoLib.Console)](https://www.nuget.org/packages/VanderCat.NekoLib)
-[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Extra?label=VanderCat.NekoLib.Extra)](https://www.nuget.org/packages/VanderCat.NekoLib)
-[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Filesystem?label=VanderCat.NekoLib.Filesystem)](https://www.nuget.org/packages/VanderCat.NekoLib)
-[![NuGet Version](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Tools?label=VanderCat.NekoLib.Tools)](https://www.nuget.org/packages/VanderCat.NekoLib)
+[![NuGet ECS](https://img.shields.io/nuget/vpre/VanderCat.NekoLib?label=VanderCat.NekoLib)](https://www.nuget.org/packages/VanderCat.NekoLib)
+[![NuGet Console](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Console?label=VanderCat.NekoLib.Console)](https://www.nuget.org/packages/VanderCat.NekoLib.Console)
+[![NuGet Extra](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Extra?label=VanderCat.NekoLib.Extra)](https://www.nuget.org/packages/VanderCat.NekoLib.Extra)
+[![NuGet Filesystem](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Filesystem?label=VanderCat.NekoLib.Filesystem)](https://www.nuget.org/packages/VanderCat.NekoLib.Filesystem)
+[![NuGet Tools](https://img.shields.io/nuget/vpre/VanderCat.NekoLib.Tools?label=VanderCat.NekoLib.Tools)](https://www.nuget.org/packages/VanderCat.NekoLib.Tools)
 
 A collection of library agnostic gamedev-like stuff
 
