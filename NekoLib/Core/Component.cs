@@ -50,26 +50,10 @@ public abstract class Component : Object {
             var method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             if (method == null)
                 return;
-            methods[methodName] = action = CompileMethod(method);
+            methods[methodName] = action = method.Compile();
         }
 
         action(this, o);
-    }
-
-    protected static Action<object, object?> CompileMethod(MethodInfo method) {
-        var instance = Expression.Parameter(typeof(object));
-        var param = Expression.Parameter(typeof(object));
-        var parameters = method.GetParameters();
-        var arguments = parameters.Length == 0 ? null :
-            Expression.Convert(param, parameters[0].ParameterType);
-
-        var call = Expression.Call(
-            Expression.Convert(instance, method.DeclaringType!),
-            method,
-            arguments != null ? [arguments] : null
-        );
-
-        return Expression.Lambda<Action<object, object?>>(call, instance, param).Compile();
     }
     
     public string ToString() => $"{GetType().Name} of {GameObject.Name}";

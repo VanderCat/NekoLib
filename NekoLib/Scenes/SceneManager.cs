@@ -133,11 +133,7 @@ public static class SceneManager {
 
     public static void InvokeScene(string name, object? payload = null) {
         for (var index = 0; index < _scenes.Count; index++) {
-            var scene = _scenes[index];
-            scene.GetType()
-                .GetMethod(name,
-                    BindingFlags.Default | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?.Invoke(scene, payload is null ? null : new[] {payload});
+            _scenes[index].Invoke(name, payload);
         }
     }
 
