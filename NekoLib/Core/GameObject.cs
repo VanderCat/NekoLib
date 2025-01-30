@@ -216,7 +216,7 @@ public class GameObject : Object {
         _SendMessage(_componentsThisFrame, methodName, o);
     }
 
-    private Component[] _componentsThisFrame = Array.Empty<Component>();
+    private Component[] _componentsThisFrame = [];
     
     private static void _SendMessage(Component[] components, string methodName, object? o = null) {
         foreach (var component in components) {
@@ -237,7 +237,9 @@ public class GameObject : Object {
     }
 
     public virtual void Update() {
-        _componentsThisFrame = new Component[_components.Count];
+        if (_components.Count > _componentsThisFrame.Length) {
+            Array.Resize(ref _componentsThisFrame, _components.Count);
+        }
         _components.CopyTo(_componentsThisFrame);
         _SendMessage(_componentsThisFrame, "StartIfNeeded");
         _SendMessage(_componentsThisFrame, "Update");
