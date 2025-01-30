@@ -14,65 +14,65 @@ public abstract class BaseScene : IScene {
     //protected BaseScene() {
     //    _logger = Logging.GetFor(GetType().ToString());
     //}
-    
+    private GameObject[] _currentGameObjects = [];
     public virtual void Initialize() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.Initialize();
         }
     }
 
     public virtual void Update() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.Update();
         }
     }
 
     public virtual void Draw() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.SendMessage("Draw");
         }
-        foreach (var gameObject in currentGameObjects) {
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.SendMessage("LateDraw");
         }
     }
 
     public virtual void OnWindowResize() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
+        UpdateCurrentGameObjects();
         //_logger.Trace("Window resized");
-        foreach (var gameObject in currentGameObjects) {
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.SendMessage("OnWindowResize");
         }
     }
 
     public virtual void FixedUpdate() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.SendMessage("FixedUpdate");
         }
     }
 
     public virtual void DrawGui() {
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.SendMessage("DrawGui");
         }
     }
 
     public virtual void Dispose() {
         GC.SuppressFinalize(this);
-        var currentGameObjects = new GameObject[GameObjects.Count];
-        GameObjects.CopyTo(currentGameObjects);
-        foreach (var gameObject in currentGameObjects) {
+        UpdateCurrentGameObjects();
+        foreach (var gameObject in _currentGameObjects) {
             gameObject.Dispose();
         }
+    }
+
+    private void UpdateCurrentGameObjects() {
+        if (GameObjects.Count > _currentGameObjects.Length) {
+            Array.Resize(ref _currentGameObjects, GameObjects.Count);
+        }
+        GameObjects.CopyTo(_currentGameObjects);
     }
 }
