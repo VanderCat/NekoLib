@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -12,7 +13,7 @@ public class NekoArchiveCompressor {
     public string OutputDir = "";
     public int ArchiveCount = 1;
     public string ArchiveName = "";
-    public int CompressionLevel = 15;
+    public ICompressor Compressor;
 
     internal class ExtensionNode(string ext) {
         public string Extension = ext;
@@ -51,17 +52,28 @@ public class NekoArchiveCompressor {
         ArchiveName = name;
         return this;
     }
+
+    public NekoArchiveCompressor SetCompressor(ICompressor compressor) {
+        Compressor = compressor;
+        return this;
+    }
     
     public unsafe void Compress() {
         Directory.Exists(DirectoryPath);
         var infos = new List<FileInfo>();
         var fileTree = new Dictionary<string, ExtensionNode>();
         ulong offset = 0;
-        var compressor = new Compressor();
         using var fileStream = File.Open(Path.Join(OutputDir, ArchiveName+".nla"), FileMode.CreateNew, FileAccess.Write);
         using var br = new BinaryWriter(fileStream);
         var datablob = Array.Empty<byte[]>();
-        compressor.SetParameter(ZSTD_cParameter.ZSTD_c_compressionLevel, CompressionLevel);
+        if (Compressor.SupportsTraining) {
+            var uncomp = new List<byte[]>();
+            foreach (var file in Directory.GetFiles(DirectoryPath, "*.*", SearchOption.AllDirectories)) {
+                var f = File.ReadAllBytes(file);
+                uncomp.Add(f);
+            }
+            Compressor.Train(uncomp);
+        }
         foreach (var file in Directory.GetFiles(DirectoryPath, "*.*", SearchOption.AllDirectories)) {
             var rlPath = Path.GetRelativePath(DirectoryPath, file);
             var ep = EntryPath.FromString(rlPath);
@@ -73,18 +85,31 @@ public class NekoArchiveCompressor {
             if (!dirNode.FileNodes.TryGetValue(ep.Name, out var fileNode))
                 fileNode = dirNode.FileNodes[ep.Name] = new FileNode(ep.Name);
             fileNode.Entry.ArchiveIndex = 0;
-            fileNode.Entry.CompressionType = CompressionType.Zstd;
-            var compressed = compressor.Wrap(File.ReadAllBytes(file));
+            var compressed = Compressor.Compress(File.ReadAllBytes(file));
             fileNode.Entry.Size = (ulong)compressed.Length;
             fileNode.Data = compressed.ToArray();
             fixed (byte* ptr = fileNode.Entry.Md5)
                 MD5.HashData(compressed, new Span<byte>(ptr, 16));
         }
 
+        var compid = Compressor.GetType().GetCustomAttribute<CompressionIdAttribute>();
+        if (compid is null) {
+            throw new Exception("Compression id is missing please add");
+        }
+
         var header = new Header();
         br.Write(header.Signature);
         br.Write(header.Version);
         br.Write(header.TreeSize);
+        br.Write(Encoding.ASCII.GetBytes(compid.Id));
+        if (Compressor.SupportsTraining) {
+            var data = Compressor.GetTrainData();
+            br.Write((ulong)data.Length);
+            br.Write(data);
+        }
+        else {
+            br.Write((ulong)0);
+        }
         header.TreeSize = (ulong)fileStream.Position;
         foreach (var (ext, extNode) in fileTree) {
             br.Write(Encoding.UTF8.GetBytes(ext));
@@ -105,7 +130,6 @@ public class NekoArchiveCompressor {
                     br.Write(fileNode.Entry.ArchiveIndex);
                     br.Write(fileNode.Entry.Offset);
                     br.Write(fileNode.Entry.Size);
-                    br.Write((uint)fileNode.Entry.CompressionType);
                     br.Write(fileNode.Entry.Terminator);
                     
 

@@ -10,7 +10,6 @@ public unsafe struct Entry() {
     public ushort ArchiveIndex; //0 is main archive
     public ulong Offset;
     public ulong Size;
-    public CompressionType CompressionType;
     public ushort Terminator = 0xffff;
 
     public unsafe string Md5Str {
