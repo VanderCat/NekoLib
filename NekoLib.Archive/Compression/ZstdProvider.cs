@@ -5,8 +5,8 @@ namespace NekoLib.Archive;
 
 [CompressionId("ZSTD")]
 public class ZstdProvider() : IDecompressor, ICompressor, IDisposable {
-    private Decompressor Decompressor = new();
-    private Compressor Compressor = new();
+    private Decompressor _decompressor = new();
+    private Compressor _compressor = new();
     public int DictCapacity = 112640;
     public byte[]? Dict;
     private int _compressionLevel = Compressor.DefaultCompressionLevel;
@@ -21,37 +21,38 @@ public class ZstdProvider() : IDecompressor, ICompressor, IDisposable {
             if (value > Compressor.MaxCompressionLevel || value < Compressor.MinCompressionLevel)
                 value = Compressor.DefaultCompressionLevel;
             _compressionLevel = value;
-            Compressor.SetParameter(ZSTD_cParameter.ZSTD_c_compressionLevel, CompressionLevel);
+            _compressor.SetParameter(ZSTD_cParameter.ZSTD_c_compressionLevel, CompressionLevel);
         }
     }
 
     public void LoadData(ReadOnlySpan<byte> data) {
-        Decompressor.LoadDictionary(data);
-        Compressor.LoadDictionary(data);
+        if (data.Length <= 0) return;
+        _decompressor.LoadDictionary(data);
+        _compressor.LoadDictionary(data);
     }
 
     public Span<byte> Decompress(ReadOnlySpan<byte> data, int maxsize) {
-        return Decompressor.Unwrap(data, maxsize);
+        return _decompressor.Unwrap(data, maxsize);
     }
     
     public void Decompress(ReadOnlySpan<byte> data, Span<byte> dest) {
-        Decompressor.Unwrap(data, dest);
+        _decompressor.Unwrap(data, dest);
     }
     
     public Span<byte> Compress(ReadOnlySpan<byte> data) {
-        return Compressor.Wrap(data);
+        return _compressor.Wrap(data);
     }
     
     public void Compress(ReadOnlySpan<byte> data, Span<byte> dest) {
-        Compressor.Wrap(data, dest);
+        _compressor.Wrap(data, dest);
     }
 
     public void Dispose() {
-        Decompressor.Dispose();
-        Compressor.Dispose();
+        _decompressor.Dispose();
+        _compressor.Dispose();
     }
 
-    public bool SupportsTraining => true;
+    public bool SupportsTraining => DictCapacity > 0;
 
     public void Train(IEnumerable<byte[]> data) {
         var span = DictBuilder.TrainFromBufferFastCover(data, _compressionLevel, DictCapacity);
@@ -68,6 +69,6 @@ public class ZstdProvider() : IDecompressor, ICompressor, IDisposable {
     public bool SupportsStreaming => true;
 
     public Stream GetDecompressionStream(Stream stream) {
-        return new DecompressionStream(stream, Decompressor);
+        return new DecompressionStream(stream, _decompressor);
     }
 }

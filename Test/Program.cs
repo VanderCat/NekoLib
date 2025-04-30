@@ -7,7 +7,7 @@ class Program {
     static void Main(string[] args) {
 
         var comp = new NekoArchiveCompressor()
-            .SetDirectoryPath(args[0])
+            .AddDirectoryPath(args[0])
             .SetOutputDir(args[1])
             .SetCompressor(new StoreProvider());
             //.SetCompressor(new ZstdProvider(Compressor.MaxCompressionLevel));

@@ -9,11 +9,12 @@ using ZstdSharp.Unsafe;
 namespace NekoLib.Archive;
 
 public class NekoArchiveCompressor {
-    public string DirectoryPath = "";
+    public List<string> DirectoriesPath = [];
     public string OutputDir = "";
     public int ArchiveCount = 1;
     public string ArchiveName = "";
     public ICompressor Compressor;
+    public bool Force;
 
     internal class ExtensionNode(string ext) {
         public string Extension = ext;
@@ -31,10 +32,10 @@ public class NekoArchiveCompressor {
         public byte[] Data;
     }
     
-    public NekoArchiveCompressor SetDirectoryPath(string path) {
-        DirectoryPath = path;
+    public NekoArchiveCompressor AddDirectoryPath(string path) {
+        DirectoriesPath.Add(path);
         if (ArchiveName == "") ArchiveName = Path.GetFileName(Path.GetDirectoryName(path))??"data";
-        if (OutputDir == "") OutputDir = Path.Combine(DirectoryPath, "..");
+        if (OutputDir == "") OutputDir = Path.Combine(path, "..");
         return this;
     }
 
@@ -57,25 +58,37 @@ public class NekoArchiveCompressor {
         Compressor = compressor;
         return this;
     }
+
+    public NekoArchiveCompressor SetForce(bool force) {
+        Force = force;
+        return this;
+    }
     
+    //TODO: support multiple dirs DirectoriesPath[0]
     public unsafe void Compress() {
-        Directory.Exists(DirectoryPath);
+        Console.WriteLine("Compressing started");
+        Directory.Exists(DirectoriesPath[0]);
         var infos = new List<FileInfo>();
         var fileTree = new Dictionary<string, ExtensionNode>();
         ulong offset = 0;
-        using var fileStream = File.Open(Path.Join(OutputDir, ArchiveName+".nla"), FileMode.CreateNew, FileAccess.Write);
+        var archivePath = Path.Join(OutputDir, ArchiveName + ".nla");
+        Console.WriteLine("Compressing to "+archivePath);
+        if (Force && File.Exists(archivePath)) {
+            File.Delete(archivePath);
+        }
+        using var fileStream = File.Open(archivePath, FileMode.CreateNew, FileAccess.Write);
         using var br = new BinaryWriter(fileStream);
         var datablob = Array.Empty<byte[]>();
         if (Compressor.SupportsTraining) {
             var uncomp = new List<byte[]>();
-            foreach (var file in Directory.GetFiles(DirectoryPath, "*.*", SearchOption.AllDirectories)) {
+            foreach (var file in Directory.GetFiles(DirectoriesPath[0], "*.*", SearchOption.AllDirectories)) {
                 var f = File.ReadAllBytes(file);
                 uncomp.Add(f);
             }
             Compressor.Train(uncomp);
         }
-        foreach (var file in Directory.GetFiles(DirectoryPath, "*.*", SearchOption.AllDirectories)) {
-            var rlPath = Path.GetRelativePath(DirectoryPath, file);
+        foreach (var file in Directory.GetFiles(DirectoriesPath[0], "*.*", SearchOption.AllDirectories)) {
+            var rlPath = Path.GetRelativePath(DirectoriesPath[0], file);
             var ep = EntryPath.FromString(rlPath);
             var fileInfo = new FileInfo(file);
             if (!fileTree.TryGetValue(ep.Extension, out var node))
