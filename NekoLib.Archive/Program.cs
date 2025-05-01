@@ -106,6 +106,9 @@ public class Program {
             if (a.Force) {
                 comp.SetForce(true);
             }
+            if (a.MaxSize is not null) {
+                comp.SetMaxSize(a.MaxSize??0);
+            }
             comp.Compress();
             //.SetCompressor(new ZstdProvider(Compressor.MaxCompressionLevel));
         }

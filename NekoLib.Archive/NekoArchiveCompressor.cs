@@ -11,7 +11,7 @@ namespace NekoLib.Archive;
 public class NekoArchiveCompressor {
     public List<string> DirectoriesPath = [];
     public string OutputDir = "";
-    public int ArchiveCount = 1;
+    public int MaxSize = 0;
     public string ArchiveName = "";
     public ICompressor Compressor;
     public bool Force;
@@ -39,8 +39,8 @@ public class NekoArchiveCompressor {
         return this;
     }
 
-    public NekoArchiveCompressor SetArchiveCount(int count) {
-        ArchiveCount = 1;
+    public NekoArchiveCompressor SetMaxSize(int count) {
+        MaxSize = count;
         return this;
     }
 
@@ -63,34 +63,32 @@ public class NekoArchiveCompressor {
         Force = force;
         return this;
     }
-    
-    //TODO: support multiple dirs DirectoriesPath[0]
-    public unsafe void Compress() {
-        Console.WriteLine("Compressing started");
+
+    private FileStream OpenArchive(int archiveIndex) {
         Directory.Exists(DirectoriesPath[0]);
-        var infos = new List<FileInfo>();
-        var fileTree = new Dictionary<string, ExtensionNode>();
-        ulong offset = 0;
-        var archivePath = Path.Join(OutputDir, ArchiveName + ".nla");
-        Console.WriteLine("Compressing to "+archivePath);
-        if (Force && File.Exists(archivePath)) {
+        var archivePath = 
+            Path.Join(OutputDir, ArchiveName + (archiveIndex > 0 ? $".{archiveIndex}" : ".root") + ".nla");
+        if (Force && File.Exists(archivePath))
             File.Delete(archivePath);
-        }
-        using var fileStream = File.Open(archivePath, FileMode.CreateNew, FileAccess.Write);
-        using var br = new BinaryWriter(fileStream);
-        var datablob = Array.Empty<byte[]>();
-        if (Compressor.SupportsTraining) {
-            var uncomp = new List<byte[]>();
-            foreach (var file in Directory.GetFiles(DirectoriesPath[0], "*.*", SearchOption.AllDirectories)) {
+        
+        return File.Open(archivePath, FileMode.CreateNew, FileAccess.Write) ?? throw new FileLoadException();
+    }
+
+    private void Train() {
+        var uncompressed = new List<byte[]>();
+        foreach (var path in DirectoriesPath)
+            foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)) {
                 var f = File.ReadAllBytes(file);
-                uncomp.Add(f);
+                uncompressed.Add(f);
             }
-            Compressor.Train(uncomp);
-        }
+        Compressor.Train(uncompressed);
+    }
+
+    private unsafe Dictionary<string, ExtensionNode> GetFileTree() {
+        var fileTree = new Dictionary<string, ExtensionNode>();
         foreach (var file in Directory.GetFiles(DirectoriesPath[0], "*.*", SearchOption.AllDirectories)) {
             var rlPath = Path.GetRelativePath(DirectoriesPath[0], file);
             var ep = EntryPath.FromString(rlPath);
-            var fileInfo = new FileInfo(file);
             if (!fileTree.TryGetValue(ep.Extension, out var node))
                 node = fileTree[ep.Extension] = new ExtensionNode(ep.Extension);
             if (!node.DirectoryNodes.TryGetValue(ep.Directory, out var dirNode))
@@ -105,16 +103,19 @@ public class NekoArchiveCompressor {
                 MD5.HashData(compressed, new Span<byte>(ptr, 16));
         }
 
-        var compid = Compressor.GetType().GetCustomAttribute<CompressionIdAttribute>();
-        if (compid is null) {
+        return fileTree;
+    }
+
+    private ulong WriteHeader(BinaryWriter br) {
+        var compressionId = Compressor.GetType().GetCustomAttribute<CompressionIdAttribute>()?.Id;
+        if (compressionId is null) {
             throw new Exception("Compression id is missing please add");
         }
-
         var header = new Header();
         br.Write(header.Signature);
         br.Write(header.Version);
         br.Write(header.TreeSize);
-        br.Write(Encoding.ASCII.GetBytes(compid.Id));
+        br.Write(Encoding.ASCII.GetBytes(compressionId));
         if (Compressor.SupportsTraining) {
             var data = Compressor.GetTrainData();
             br.Write((ulong)data.Length);
@@ -123,43 +124,94 @@ public class NekoArchiveCompressor {
         else {
             br.Write((ulong)0);
         }
-        header.TreeSize = (ulong)fileStream.Position;
-        foreach (var (ext, extNode) in fileTree) {
-            br.Write(Encoding.UTF8.GetBytes(ext));
-            br.Write(char.MinValue);
-            foreach (var (path, pathNode) in extNode.DirectoryNodes) {
-                br.Write(Encoding.UTF8.GetBytes(path));
-                br.Write(char.MinValue);
-                foreach (var (name, fileNode) in pathNode.FileNodes) {
-                    br.Write(Encoding.UTF8.GetBytes(name));
-                    br.Write(char.MinValue);
-                    Array.Resize(ref datablob, datablob.Length+1);
-                    datablob[^1] = fileNode.Data;
-                    fileNode.Entry.Offset = offset;
-                    offset += fileNode.Entry.Size;
-                    for (int i = 0; i < 16; i++) {
-                        br.Write(fileNode.Entry.Md5[i]);
-                    }
-                    br.Write(fileNode.Entry.ArchiveIndex);
-                    br.Write(fileNode.Entry.Offset);
-                    br.Write(fileNode.Entry.Size);
-                    br.Write(fileNode.Entry.Terminator);
-                    
+        return (ulong)br.BaseStream.Position;
+    }
 
-                    br.Flush();
-                }
-                br.Write(char.MinValue);
-            }
-            br.Write(char.MinValue);
+    private void WriteNodes(BinaryWriter br, Dictionary<string, ExtensionNode> fileTree) {
+        foreach (var (_, ext) in fileTree) {
+            WriteExtensionNode(br, ext);
         }
         br.Write(char.MinValue);
-        header.TreeSize = (ulong)fileStream.Position-header.TreeSize;
-        foreach (var arr in datablob) {
+    }
+    private void WriteExtensionNode(BinaryWriter br, ExtensionNode ext) {
+        br.Write(Encoding.UTF8.GetBytes(ext.Extension));
+        br.Write(char.MinValue);
+        foreach (var (_, pathNode) in ext.DirectoryNodes) {
+            WritePathNode(br, pathNode);
+        }
+        br.Write(char.MinValue);
+    }
+
+    private void WritePathNode(BinaryWriter br, DirectoryNode dir) {
+        br.Write(Encoding.UTF8.GetBytes(dir.Directory));
+        br.Write(char.MinValue);
+        foreach (var (_, pathNode) in dir.FileNodes) {
+            WriteFileNode(br, pathNode);
+        }
+        br.Write(char.MinValue);
+    }
+    private Dictionary<int, List<byte[]>> _dataBlob = [];
+    private ulong _offset = 0;
+    private int _archiveIndex = 0;
+    private unsafe void WriteFileNode(BinaryWriter br, FileNode file) {
+        br.Write(Encoding.UTF8.GetBytes(file.Name));
+        br.Write(char.MinValue);
+        file.Entry.Offset = _offset;
+        _offset += file.Entry.Size;
+        if (_offset + (_archiveIndex == 0 ? _headerSize : 0) > (ulong)MaxSize && MaxSize > 0) {
+            _offset = 0;
+            file.Entry.Offset = 0;
+            _archiveIndex++;
+        }
+        if (!_dataBlob.TryGetValue(_archiveIndex, out var list))
+            list = _dataBlob[_archiveIndex] = [];
+        list.Add(file.Data);
+        for (int i = 0; i < 16; i++) {
+            br.Write(file.Entry.Md5[i]);
+        }
+        br.Write(_archiveIndex);
+        br.Write(file.Entry.Offset);
+        br.Write(file.Entry.Size);
+        br.Write(file.Entry.Terminator);
+
+        br.Flush();
+    }
+
+    private ulong _headerSize = 0;
+    private void WriteArchives(Dictionary<string, ExtensionNode> fileTree) {
+        using var fileStream = OpenArchive(0);
+        using var br = new BinaryWriter(fileStream, Encoding.UTF8, true);
+        _headerSize = WriteHeader(br);
+        WriteNodes(br, fileTree);
+        var treeSize = (ulong)fileStream.Position-_headerSize;
+        var pos = br.BaseStream.Position;
+        br.Seek(12, SeekOrigin.Begin);
+        br.Write(treeSize);
+        br.BaseStream.Seek(pos, SeekOrigin.Begin);
+        foreach (var i in _dataBlob.Keys) {
+            if (i != 0) {
+                using var br1 = new BinaryWriter(OpenArchive(i), Encoding.UTF8, false);
+                WriteArchive(br1, i);
+                continue;
+            }
+            WriteArchive(br, 0);
+        }
+    }
+
+    private void WriteArchive(BinaryWriter br, int i) {
+        foreach (var arr in _dataBlob[i]) {
             br.Write(arr);
         }
-        br.Seek(12, SeekOrigin.Begin);
-        br.Write(header.TreeSize);
-        br.Close();
-        fileStream.Close();
+    }
+    
+    //TODO: support multiple dirs DirectoriesPath[0]
+    public unsafe void Compress() {
+        Console.WriteLine("Compressing started");
+        if (Compressor.SupportsTraining)
+            Train();
+        _dataBlob = [];
+        _offset = 0;
+        var fileTree = GetFileTree();
+        WriteArchives(fileTree);
     }
 }

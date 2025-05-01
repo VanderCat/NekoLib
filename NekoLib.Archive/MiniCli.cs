@@ -1,9 +1,6 @@
-using System.Dynamic;
 using System.Reflection;
 using System.Text;
-
 namespace NekoLib.Archive;
-
 internal static class MiniCli {
     public class MiniNameAttribute(string name) : Attribute {
         public string Name = name;
@@ -41,13 +38,18 @@ internal static class MiniCli {
                 throw new ArgumentException($"Unknown arg {n}");
             }
             enumearator.MoveNext();
-            if (f.FieldType == typeof(bool)) {
+            var type = f.FieldType;
+            var nullType = Nullable.GetUnderlyingType(type);
+            if (nullType is not null) {
+                type = nullType;
+            }
+            if (type == typeof(bool)) {
                 f.SetValue(instance, true);
                 continue;
             }
-            if (f.FieldType.IsArray) {
+            if (type.IsArray) {
                 var strs = enumearator.Current.Split(",");
-                var t = f.FieldType.GetElementType() ?? throw new Exception();
+                var t = type.GetElementType() ?? throw new Exception();
                 var arr = Array.CreateInstance(t, strs.Length);
                 for (var i = 0; i < arr.Length; i++) {
                     Console.WriteLine(arr.Length);
@@ -58,19 +60,16 @@ internal static class MiniCli {
                 continue;
             }
 
-            f.SetValue(instance, Convert.ChangeType(enumearator.Current, f.FieldType));
+            f.SetValue(instance, Convert.ChangeType(enumearator.Current, type));
         }
-
         return instance;
     }
-
     public static string GetHelpFor(Type type, string prepend = "") {
         var a = new StringBuilder();
         var val = Activator.CreateInstance(type);
         foreach (var field in type.GetFields()) {
             if ( field.GetCustomAttribute<SkipAttribute>() is not null)
                 continue;
-            
             a.Append(prepend);
             a.Append("--");
             a.Append(field.Name);
@@ -89,9 +88,7 @@ internal static class MiniCli {
             a.Append(field.GetValue(val));
             a.Append('\n');
         }
-
         return a.ToString();
     }
-
     public static string GetHelpFor<T>(string prepend = "") => GetHelpFor(typeof(T), prepend);
 }
