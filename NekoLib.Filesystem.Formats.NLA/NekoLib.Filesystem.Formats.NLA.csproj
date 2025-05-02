@@ -4,14 +4,13 @@
         <TargetFrameworks>netstandard2.1;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <OutputType>Exe</OutputType>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="ZstdSharp.Port" Version="0.8.5" />
+      <ProjectReference Include="..\NekoLib.Archive\NekoLib.Archive.csproj" />
+      <ProjectReference Include="..\NekoLib.Filesystem\NekoLib.Filesystem.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,5 +18,5 @@
             <Link>README.MD</Link>
         </Content>
     </ItemGroup>
-    
+
 </Project>

@@ -7,7 +7,11 @@ internal class SubStream : Stream {
     public sealed override long Position { get; set; }
 
     public SubStream(Stream stream, long offset, long length) {
+#if !NETSTANDARD2_1
         ArgumentNullException.ThrowIfNull(stream);
+#else
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+#endif
         
         if (!stream.CanSeek)
             throw new NotSupportedException();
@@ -39,7 +43,12 @@ internal class SubStream : Stream {
         count = (int)Math.Min(count, Length - Position);
         
         InnerStream.Seek(Offset + Position, SeekOrigin.Begin);
+#if NET7_0_OR_GREATER
         InnerStream.ReadExactly(buffer, offset, count);
+#else
+        var read = InnerStream.Read(buffer, offset, count);
+        if (read < count) throw new EndOfStreamException();
+#endif
 
         Position += count;
 

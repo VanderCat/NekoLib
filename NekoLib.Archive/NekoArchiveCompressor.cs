@@ -119,9 +119,13 @@ public class NekoArchiveCompressor {
             Log($"Compressed, Size: {compressed.Length}, Ratio: {ratio:F} ({-(1 - (float)compressed.Length / data.Length)*100:F}%)");
             fileNode.Entry.Size = (ulong)compressed.Length;
             fileNode.Data = compressed.ToArray();
-            
+
             fixed (byte* ptr = fileNode.Entry.Md5)
+#if !NETSTANDARD2_1
                 MD5.HashData(compressed, new Span<byte>(ptr, 16));
+#else
+                MD5.Create().ComputeHash(compressed.ToArray()).CopyTo(new Span<byte>(ptr, 16));
+#endif
         }
 
         return fileTree;

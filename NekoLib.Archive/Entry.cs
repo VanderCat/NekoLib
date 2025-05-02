@@ -15,7 +15,11 @@ public unsafe struct Entry() {
     public unsafe string Md5Str {
         get {
             fixed (byte* md5 = Md5)
+#if !NETSTANDARD2_1
                 return Convert.ToHexString(new Span<byte>(md5, 16));
+#else
+                return BitConverter.ToString(new Span<byte>(md5, 16).ToArray());
+#endif
         }
     }
 }

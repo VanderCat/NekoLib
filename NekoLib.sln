@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NekoLib.Archive", "NekoLib.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{5ECC5BCF-A6F6-410D-8B65-4C3114A043F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NekoLib.Filesystem.Formats.NLA", "NekoLib.Filesystem.Formats.NLA\NekoLib.Filesystem.Formats.NLA.csproj", "{75AFA409-0EEB-42E3-9890-71D2A917EC7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{5ECC5BCF-A6F6-410D-8B65-4C3114A043F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5ECC5BCF-A6F6-410D-8B65-4C3114A043F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5ECC5BCF-A6F6-410D-8B65-4C3114A043F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75AFA409-0EEB-42E3-9890-71D2A917EC7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75AFA409-0EEB-42E3-9890-71D2A917EC7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75AFA409-0EEB-42E3-9890-71D2A917EC7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75AFA409-0EEB-42E3-9890-71D2A917EC7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

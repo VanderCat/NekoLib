@@ -130,11 +130,17 @@ public class NekoArchive : IDisposable, IAsyncDisposable {
 
     public void Dispose() {
         ArchiveInfoStream.Dispose();
+        foreach (var stream in Streams) {
+            stream.Dispose();
+        }
         GC.SuppressFinalize(this);
     }
 
     public async ValueTask DisposeAsync() {
         await ArchiveInfoStream.DisposeAsync();
+        foreach (var stream in Streams) {
+            await stream.DisposeAsync();
+        }
         GC.SuppressFinalize(this);
     }
 
