@@ -37,7 +37,6 @@ internal static class MiniCli {
                 continue;
                 throw new ArgumentException($"Unknown arg {n}");
             }
-            enumearator.MoveNext();
             var type = f.FieldType;
             var nullType = Nullable.GetUnderlyingType(type);
             if (nullType is not null) {
@@ -47,6 +46,7 @@ internal static class MiniCli {
                 f.SetValue(instance, true);
                 continue;
             }
+            enumearator.MoveNext();
             if (type.IsArray) {
                 var strs = enumearator.Current.Split(",");
                 var t = type.GetElementType() ?? throw new Exception();

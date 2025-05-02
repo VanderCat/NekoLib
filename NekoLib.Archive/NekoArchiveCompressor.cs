@@ -15,6 +15,7 @@ public class NekoArchiveCompressor {
     public string ArchiveName = "";
     public ICompressor Compressor;
     public bool Force;
+    public bool Verbose;
 
     internal class ExtensionNode(string ext) {
         public string Extension = ext;
@@ -38,6 +39,14 @@ public class NekoArchiveCompressor {
         if (OutputDir == "") OutputDir = Path.Combine(path, "..");
         return this;
     }
+
+    protected void Log(string str) {
+        LoggingFunc(str);
+        if (Verbose)
+            LoggingFunc(str);
+    }
+
+    public Action<string> LoggingFunc = Console.WriteLine;
 
     public NekoArchiveCompressor SetMaxSize(int count) {
         MaxSize = count;
@@ -68,6 +77,7 @@ public class NekoArchiveCompressor {
         Directory.Exists(DirectoriesPath[0]);
         var archivePath = 
             Path.Join(OutputDir, ArchiveName + (archiveIndex > 0 ? $".{archiveIndex}" : ".root") + ".nla");
+        Log($"Writing to {archivePath}");
         if (Force && File.Exists(archivePath))
             File.Delete(archivePath);
         
@@ -75,16 +85,22 @@ public class NekoArchiveCompressor {
     }
 
     private void Train() {
+        Log("Starting Training");
         var uncompressed = new List<byte[]>();
-        foreach (var path in DirectoriesPath)
+        foreach (var path in DirectoriesPath) {
+            Log($"Adding {path} to train list");
             foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)) {
                 var f = File.ReadAllBytes(file);
                 uncompressed.Add(f);
             }
+        }
+        Log("Training...");
         Compressor.Train(uncompressed);
+        Log("Training finished!");
     }
 
     private unsafe Dictionary<string, ExtensionNode> GetFileTree() {
+        Log("Creating file tree");
         var fileTree = new Dictionary<string, ExtensionNode>();
         foreach (var file in Directory.GetFiles(DirectoriesPath[0], "*.*", SearchOption.AllDirectories)) {
             var rlPath = Path.GetRelativePath(DirectoriesPath[0], file);
@@ -96,9 +112,14 @@ public class NekoArchiveCompressor {
             if (!dirNode.FileNodes.TryGetValue(ep.Name, out var fileNode))
                 fileNode = dirNode.FileNodes[ep.Name] = new FileNode(ep.Name);
             fileNode.Entry.ArchiveIndex = 0;
-            var compressed = Compressor.Compress(File.ReadAllBytes(file));
+            Log($"Compressing {rlPath} as {ep}");
+            var data = File.ReadAllBytes(file);
+            var compressed = Compressor.Compress(data);
+            var ratio = (float)data.Length / compressed.Length;
+            Log($"Compressed, Size: {compressed.Length}, Ratio: {ratio:F} ({-(1 - (float)compressed.Length / data.Length)*100:F}%)");
             fileNode.Entry.Size = (ulong)compressed.Length;
             fileNode.Data = compressed.ToArray();
+            
             fixed (byte* ptr = fileNode.Entry.Md5)
                 MD5.HashData(compressed, new Span<byte>(ptr, 16));
         }
@@ -152,14 +173,14 @@ public class NekoArchiveCompressor {
     }
     private Dictionary<int, List<byte[]>> _dataBlob = [];
     private ulong _offset = 0;
-    private int _archiveIndex = 0;
+    private ushort _archiveIndex = 0;
     private unsafe void WriteFileNode(BinaryWriter br, FileNode file) {
         br.Write(Encoding.UTF8.GetBytes(file.Name));
         br.Write(char.MinValue);
         file.Entry.Offset = _offset;
         _offset += file.Entry.Size;
         if (_offset + (_archiveIndex == 0 ? _headerSize : 0) > (ulong)MaxSize && MaxSize > 0) {
-            _offset = 0;
+            _offset = file.Entry.Size;
             file.Entry.Offset = 0;
             _archiveIndex++;
         }
@@ -206,12 +227,17 @@ public class NekoArchiveCompressor {
     
     //TODO: support multiple dirs DirectoriesPath[0]
     public unsafe void Compress() {
-        Console.WriteLine("Compressing started");
+        Log("Compressing started");
         if (Compressor.SupportsTraining)
             Train();
         _dataBlob = [];
         _offset = 0;
         var fileTree = GetFileTree();
         WriteArchives(fileTree);
+    }
+
+    public NekoArchiveCompressor SetVerbose(bool verbose) {
+        Verbose = verbose;
+        return this;
     }
 }

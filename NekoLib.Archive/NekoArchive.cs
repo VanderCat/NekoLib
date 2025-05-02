@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,6 +13,18 @@ public class NekoArchive : IDisposable, IAsyncDisposable {
     private ulong DataOffset;
     public List<Stream> Streams;
     public IDecompressor Decompressor;
+    
+    internal class ArchiveComparer : IComparer<string> {
+        public int Compare(string x, string y) {
+            // Parse the extension from the file name.
+            x = Path.GetFileNameWithoutExtension(x);
+            y = Path.GetFileNameWithoutExtension(y);
+            var idx = ushort.Parse(x[(x.LastIndexOf('.') + 1)..]);
+            var idy = ushort.Parse(y[(y.LastIndexOf('.') + 1)..]);
+            return idx - idy;
+        }
+    }
+
     
     private static Dictionary<string, IDecompressor>  _decompressors = new();
     public static void Register<T>() where T : IDecompressor, new() {
@@ -34,24 +47,33 @@ public class NekoArchive : IDisposable, IAsyncDisposable {
     
     public static NekoArchive Load(string path) {
         var stream = File.Open(path, FileMode.Open, FileAccess.Read);
-        var AdditionalStreams = new List<Stream>();
-        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(path))) {
-            if (file.StartsWith(Path.GetDirectoryName(path))) {
-                if (file == path) continue;
-                AdditionalStreams.Add(File.Open(file, FileMode.Open, FileAccess.Read));
+        var additionalStreamPaths = new SortedSet<string>(new ArchiveComparer());
+        var name = Path.GetFileNameWithoutExtension(path);
+        if (name.EndsWith(".root")) {
+            name = name.Replace(".root", "");
+            foreach (var archive in  Directory.EnumerateFiles(Path.GetDirectoryName(Path.GetFullPath(path)), name+".*.nla",
+                         SearchOption.TopDirectoryOnly)) {
+                if (archive.Contains(".root.nla")) continue;
+                additionalStreamPaths.Add(archive);
             }
         }
-        return Load(stream, AdditionalStreams);
+
+        var streams = new Stream[additionalStreamPaths.Count];
+        var i = 0;
+        foreach (var streamPath in additionalStreamPaths) {
+            streams[i++] = File.Open(streamPath, FileMode.Open, FileAccess.Read);
+        }
+        return Load(stream, streams);
     }
     
-    public static NekoArchive Load(Stream archive, List<Stream>? additionalArchives) {
+    public static NekoArchive Load(Stream archive, IEnumerable<Stream>? additionalArchives) {
         var header = ReadHeader(archive);
         if (header.Version != 1) throw new NotImplementedException();
         //var decomp = new DecompressionStream(stream, 0, true, false);
-        return new NekoArchive(archive, header, additionalArchives??[]);
+        return new NekoArchive(archive, header, additionalArchives?.ToList()??[]);
     }
-
-    public Stream GetStream(string path) {
+    
+    internal SubStream GetCompressedStream(string path) {
         var ep = EntryPath.FromString(path);
         var entry = Entries[ep];
         Stream stream;
@@ -64,17 +86,21 @@ public class NekoArchive : IDisposable, IAsyncDisposable {
             stream = Streams[entry.ArchiveIndex - 1];
         }
         offset += entry.Offset;
+        return new SubStream(stream, (long)offset, (long)entry.Size);
+    }
+
+    public Stream GetStream(string path) {
         if (Decompressor.SupportsStreaming) {
-            return Decompressor.GetDecompressionStream(new SubStream(stream, (long)offset, (long)entry.Size));
+            return Decompressor.GetDecompressionStream(GetCompressedStream(path));
         }
         throw new NotSupportedException();
     }
 
     public byte[] ReadFile(string path) {
-        using var stream = GetStream(path);
+        var compressed = GetCompressedStream(path);
         using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        return ms.ToArray();
+        compressed.CopyTo(ms);
+        return Decompressor.Decompress(ms.ToArray()).ToArray();
     }
 
     private static unsafe Header ReadHeader(Stream stream) {

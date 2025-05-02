@@ -6,6 +6,8 @@ public record struct EntryPath {
     public string Name;
     
     public override string ToString() {
+        if (Directory == "__ROOT__")
+            return $"{Name}{Extension}";
         return $"{Directory}/{Name}{Extension}";
     }
 
