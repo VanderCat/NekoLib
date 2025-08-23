@@ -18,8 +18,9 @@ public interface IScene : IDisposable
     public bool DestroyOnLoad { get; }
     
     /// <summary>
-    /// Index of this scene, please do not override it unless you want bad thing to happen
+    /// Index of this scene
     /// </summary>
+    /// <remarks>please do not overwrite this index unless you want bad thing to happen</remarks>
     public int Index { get; set; }
 
     /// <summary>
