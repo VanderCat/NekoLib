@@ -19,6 +19,7 @@ A collection of library agnostic gamedev-like stuff
 5. ImGui Unity-Like in-game editor (NekoLib.Tools)
 6. Source-like console system (NekoLib.Console)
 7. Extra stuff like AttachMode, HotReloadService, Damping, base Scene implementation (NekoLib.Extra)
+8. SparseSet implementation for fast unordered storage
 
 ## Example:
 ```csharp
@@ -61,6 +62,8 @@ static class Program {
         SceneManagement.LoadScene(scene);
     
         while (true) {
+            Timer.Global.Update(0.1f) // Necessary for some stuff like Object.Destroy
+            ActionDispatcher.ExecuteQueuedActions(); // Necessary for object initialization
             SceneManagement.Update();
             SceneManagement.Draw();
         }

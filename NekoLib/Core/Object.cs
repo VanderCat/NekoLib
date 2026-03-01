@@ -16,10 +16,8 @@ public abstract class Object : IDisposable {
     public Guid Id = Guid.NewGuid();
 
     public new string ToString() => Name;
-    
-    public virtual void Dispose() {
-        
-    }
+
+    public abstract void Dispose();
 
     public static void Destroy(Object obj, float delay = 0f) {
         Timer.Global.After(delay, function => obj.Dispose());

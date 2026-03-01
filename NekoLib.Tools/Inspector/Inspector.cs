@@ -46,5 +46,7 @@ public class Inspector : Object {
         ((Inspector) instance).Target = target;
         ((Inspector) instance).Initialize();
         return (Inspector) instance;
-    }  
+    }
+
+    public override void Dispose() { }
 }

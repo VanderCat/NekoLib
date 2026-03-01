@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using NekoLib.QueuedActions;
 using NekoLib.Scenes;
 
 namespace NekoLib.Core; 
@@ -78,7 +79,7 @@ public class GameObject : Object {
     /// </see>
     public Transform Transform;
     
-    internal List<Component> _components = new();
+    internal readonly SparseSet<Component> _components = [];
     
     /// <summary>
     /// Create a GameObject and add it to scene
@@ -91,8 +92,16 @@ public class GameObject : Object {
     /// </todo>
     public GameObject(string name = "GameObject") {
         Transform = new Transform(){GameObject = this};
-        Scene.GameObjects.Add(this);
         Name = name;
+        SceneManager.QueueGameObject(this, Scene);
+        ActionDispatcher.QueueAction(new InitializationQueuedAction(this));
+    }
+    
+    private class ComponentInitializationQueuedAction(Component c) : IQueuedAction {
+        public void Execute() {
+            c.Invoke("Awake");
+            c._awoke = true;
+        }
     }
 
     /// <summary>
@@ -105,10 +114,7 @@ public class GameObject : Object {
             GameObject = this
         };
         _components.Add(component);
-        if (Initialized)  {
-            component.Invoke("Awake");
-            component._awoke = true;
-        }
+        ActionDispatcher.QueueAction(new ComponentInitializationQueuedAction(component));
         return component;
     }
 
@@ -135,10 +141,13 @@ public class GameObject : Object {
     }
     
     /// <summary>
-    /// Get first component instance of a given type on GameObject
+    /// Get first component instance of a given type on GameObject.
     /// </summary>
     /// <param name="type">A Component type</param>
     /// <returns>Component instance of a given type</returns>
+    /// <remarks>
+    /// The order is not guaranteed if components get removed due to how components are stored
+    /// </remarks>
     public Component? GetComponent(Type type) {
         return _components.FirstOrDefault(t => t.GetType()==type);
     }
@@ -148,6 +157,9 @@ public class GameObject : Object {
     /// </summary>
     /// <param name="id">A Component id</param>
     /// <returns>Component instance with a given id, if found</returns>
+    /// <remarks>
+    /// The order is not guaranteed if components get removed due to how components are stored
+    /// </remarks>
     public Component? GetComponentById(Guid id) {
         return _components.FirstOrDefault(t => t.Id==id);
     }
@@ -188,6 +200,9 @@ public class GameObject : Object {
     /// </summary>
     /// <typeparam name="TComponent">A Component type</typeparam>
     /// <returns>Component instance of a given type</returns>
+    /// <remarks>
+    /// The order is not guaranteed if components get removed due to how components are stored
+    /// </remarks>
     public TComponent GetComponentInChildren<TComponent>() where TComponent : Component, new() {
         return GetComponentsInChildren<TComponent>()[0];
     }
@@ -213,13 +228,7 @@ public class GameObject : Object {
     /// <param name="methodName">Name of the method to call</param>
     /// <param name="o">Addition argument to call</param>
     public void SendMessage(string methodName, object? o = null) {
-        _SendMessage(_componentsThisFrame, methodName, o);
-    }
-
-    private Component[] _componentsThisFrame = [];
-    
-    private static void _SendMessage(Component[] components, string methodName, object? o = null) {
-        foreach (var component in components) {
+        foreach (var component in _components) {
             component.Invoke(methodName, o);
         }
     }
@@ -233,43 +242,46 @@ public class GameObject : Object {
         foreach (var child in Transform) {
             child.Broadcast(methodName, o);
         }
-        _SendMessage(_componentsThisFrame, methodName, o);
+        SendMessage(methodName, o);
     }
 
     public virtual void Update() {
-        if (_components.Count > _componentsThisFrame.Length) {
-            Array.Resize(ref _componentsThisFrame, _components.Count);
-        }
-        _components.CopyTo(_componentsThisFrame);
-        _SendMessage(_componentsThisFrame, "StartIfNeeded");
-        _SendMessage(_componentsThisFrame, "Update");
-        _SendMessage(_componentsThisFrame, "LateUpdate");
+        SendMessage("StartIfNeeded");
+        SendMessage("Update");
+        SendMessage("LateUpdate");
     }
 
     public virtual void Draw() {
-        _SendMessage(_componentsThisFrame, "Draw");
-        _SendMessage(_componentsThisFrame, "DrawGui");
+        SendMessage("Draw");
+        SendMessage("DrawGui");
     }
 
-    public virtual void Initialize() {
-        Initialized = true;
-        _SendMessage(_components.ToArray(),"Awake"); //TODO: Automatically initialize components added while Awake
-        foreach (var component in _components) {
-            component._awoke = true;
+    private class InitializationQueuedAction(GameObject g) : IQueuedAction {
+        public void Execute() {
+            g.Initialize();
         }
-
-        foreach (var behaviour in _components.OfType<Behaviour>()) {
-            if (behaviour is null) continue;
+    }
+    public virtual void Initialize() {
+        foreach (var component in _components) {
+            if (component is not Behaviour behaviour)
+                continue;
             if (behaviour.Enabled) behaviour.Enabled = behaviour.Enabled; // Auto run hook
         }
     }
 
+    private class RemoveComponentQueuedAction(Component c) : IQueuedAction {
+        public void Execute() {
+            c.Dispose();
+            c.GameObject._components.Remove(c);
+        }
+    }
+
+
     public override void Dispose() {
         foreach (var component in _components) {
-            Destroy(component);
+           ActionDispatcher.QueueAction(new RemoveComponentQueuedAction(component));
         }
-        base.Dispose();
-        Scene.GameObjects.Remove(this);
+        SceneManager.QueueRemoveGameObject(this);
     }
 
     public static GameObject Find(string path) {

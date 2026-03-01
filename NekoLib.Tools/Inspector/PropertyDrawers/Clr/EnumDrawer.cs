@@ -39,6 +39,7 @@ public class EnumDrawer : SimpleDrawer<Enum> {
                 var selected = value.Equals(enumValue);
                 if (ImGui.Selectable(enumValue.ToString(), selected)) {
                     value = enumValue;
+                    ImGui.EndCombo();
                     return true;
                 }
 
@@ -46,7 +47,7 @@ public class EnumDrawer : SimpleDrawer<Enum> {
                 if (selected)
                     ImGui.SetItemDefaultFocus();
             }
-        ImGui.EndCombo();
+            ImGui.EndCombo();
         }
         return false;
     }

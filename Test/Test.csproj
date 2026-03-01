@@ -10,6 +10,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\NekoLib.Archive\NekoLib.Archive.csproj" />
+      <ProjectReference Include="..\NekoLib.Extra\NekoLib.Extra.csproj" />
+      <ProjectReference Include="..\NekoLib\NekoLib.csproj" />
     </ItemGroup>
 
     <ItemGroup>

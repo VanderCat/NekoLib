@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using NekoLib.Core;
+using NekoLib.QueuedActions;
 
 namespace NekoLib.Scenes;
 
@@ -142,5 +144,38 @@ public static class SceneManager {
             throw new ArgumentException("Attempt to load an not yet loaded scene");
         }
         ActiveSceneIndex = scene.Index;
+    }
+
+    private interface ISceneQueuedAction : IQueuedAction {
+        public IScene Scene { get; }
+        public void Execute();
+    }
+    
+    private class AddGameObjectToSceneQueuedAction(IScene scene, GameObject gameObject) : ISceneQueuedAction {
+        public GameObject GameObject => gameObject;
+        public IScene Scene => scene;
+        public void Execute() {
+            Scene.GameObjects.Add(GameObject);
+        }
+    }
+    private class RemoveGameObjectFromSceneQueuedAction(GameObject gameObject) : ISceneQueuedAction {
+        public GameObject GameObject => gameObject;
+        public IScene Scene => gameObject.Scene;
+        public void Execute() {
+            Scene.GameObjects.Add(GameObject);
+        }
+    }
+
+    /// <summary>
+    /// Queue gameobject to be added next frame
+    /// </summary>
+    /// <param name="scene"></param>
+    internal static void QueueGameObject(GameObject gameObject, IScene scene) {
+        ActionDispatcher.QueueAction(new AddGameObjectToSceneQueuedAction(scene, gameObject));
+    }
+
+
+    internal static void QueueRemoveGameObject(GameObject gameObject) {
+        ActionDispatcher.QueueAction(new RemoveGameObjectFromSceneQueuedAction(gameObject));
     }
 }

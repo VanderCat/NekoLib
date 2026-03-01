@@ -61,15 +61,11 @@ public abstract class Component : Object {
     internal bool _awoke = false;
     internal bool _started = false;
 
-    public void StartIfNeeded() {
+    internal void StartIfNeeded() {
         if (!_awoke || _started) return;
         Invoke("Start");
         _started = true;
     }
 
-    public override void Dispose() {
-        base.Dispose();
-        GameObject._components.Remove(this);
-        GameObject = null;
-    }
+    public override void Dispose() { }
 }
