@@ -35,13 +35,23 @@ public class Transform : Component, IEnumerable<Transform> {
 
     private List<Transform> _children = new();
 
-    //public Vector3 Scale;
+    public Vector3 Scale {
+        get {
+            if (Parent is null)
+                return LocalScale;
+            return Parent.Scale * LocalScale;
+        }
+    }
 
     /// <summary>
     /// Position in the world
     /// </summary>
     public Vector3 Position {
-        get => GlobalMatrix.Translation;
+        get {
+            if (Parent is not null)
+                return Parent.Position + LocalPosition;
+            return LocalPosition;
+        }
         set {
             if (Parent is null) {
                 LocalPosition = value;
@@ -60,21 +70,16 @@ public class Transform : Component, IEnumerable<Transform> {
     /// </summary>
     public Quaternion Rotation {
         get {
-            Matrix4x4.Decompose(GlobalMatrix, out _, out var rotation, out _);
-            return rotation;
+            if (Parent is not null)
+                return Parent.Rotation * LocalRotation;
+            return LocalRotation;
         }
         set {
             if (Parent is null) {
                 LocalRotation = value;
                 return;
-            } 
-            var inverseSucceded = Matrix4x4.Invert(Parent.GlobalMatrix, out var invertedGlobalMatrix);
-            if (inverseSucceded) {
-                Matrix4x4.Decompose(invertedGlobalMatrix, out _, out var rotation, out _);
-                LocalRotation = rotation*value;
             }
-            else
-                throw new ArithmeticException("Could not set global rotation, due to illegal matrix???");
+            LocalRotation = value / Parent.Rotation;
         }
     }
 
@@ -96,10 +101,26 @@ public class Transform : Component, IEnumerable<Transform> {
     /// <summary>
     /// A matrix to convert from world to local
     /// </summary>
-    public Matrix4x4 World2LocalMatrix;
+    public Matrix4x4 World2LocalMatrix {
+        get {
+            if (Parent is null)
+                return Matrix4x4.Identity;
+            if (!Matrix4x4.Invert(Parent.GlobalMatrix, out var inverted))
+                throw new InvalidOperationException("Could not invert the parent GlobalMatrix!");
+            return inverted;
+        }
+    }
 
-    public Matrix4x4 ModelMatrix =>
-        Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale) * Matrix4x4.CreateTranslation(LocalPosition);
+    public Matrix4x4 ModelMatrix {
+        get => Matrix4x4.CreateFromQuaternion(LocalRotation) * Matrix4x4.CreateScale(LocalScale) *
+               Matrix4x4.CreateTranslation(LocalPosition);
+        set {
+            Matrix4x4.Decompose(value, out var scale, out var rotation, out var translation);
+            LocalScale = scale;
+            LocalRotation = rotation;
+            LocalPosition = translation;
+        }
+    }
     public Matrix4x4 GlobalMatrix => (ModelMatrix*Parent?.GlobalMatrix) ?? ModelMatrix;
 
     /// <summary>
@@ -111,9 +132,9 @@ public class Transform : Component, IEnumerable<Transform> {
     public Vector3 Forward => Vector3.Transform(-Vector3.UnitZ, Rotation);
     public Vector3 Right => Vector3.Transform(Vector3.UnitX, Rotation);
     
-    public Vector3 Down => -Up;
-    public Vector3 Backward => -Forward;
-    public Vector3 Left => -Right;
+    public Vector3 Down => Vector3.Transform(-Vector3.UnitY, Rotation);
+    public Vector3 Backward => Vector3.Transform(Vector3.UnitZ, Rotation);
+    public Vector3 Left => Vector3.Transform(-Vector3.UnitX, Rotation);
     
     /// <summary>
     /// Get child Transform
@@ -125,11 +146,17 @@ public class Transform : Component, IEnumerable<Transform> {
     }
 
     public new string ToString() => $"{base.ToString()}:\n  Pos: {Position}\n  Rot: {Rotation.GetEulerAngles()}\n  Scale: {LocalScale}";
-
-    [Obsolete("Unfinished. Do not use.")]
+    
     public void LookAt(Vector3 pos) {
-        var mat = Matrix4x4.CreateLookAt(Vector3.Zero, Vector3.Normalize(pos-Position), Vector3.UnitY); //fixme
-        LocalRotation = Quaternion.CreateFromRotationMatrix(mat);
+        var lookAt = Matrix4x4.CreateLookAt(Position, pos, Vector3.UnitY);
+        if (!Matrix4x4.Invert(lookAt, out lookAt))
+            throw new InvalidDataException("Failed to invert look at matrix");
+        var scale = LocalScale;
+        if (Parent is not null) {
+            lookAt *= World2LocalMatrix; //to localspace;
+        }
+        ModelMatrix = lookAt;
+        LocalScale = scale; //restore scale;
     }
 }
 

@@ -24,9 +24,9 @@ public class TransformInspector : Inspector {
         );
         if (ImGui.SliderFloat3("Rotation", ref rotPretty, 0, 360f)) {
             rot = Quaternion.CreateFromYawPitchRoll(
-                float.RadiansToDegrees(rotvec.X), 
-                float.RadiansToDegrees(rotvec.Y), 
-                float.RadiansToDegrees(rotvec.Z)
+                float.DegreesToRadians(rotPretty.X), 
+                float.DegreesToRadians(rotPretty.Y), 
+                float.DegreesToRadians(rotPretty.Z)
                 );
             target.LocalRotation = rot;
         }

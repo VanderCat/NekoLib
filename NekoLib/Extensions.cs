@@ -13,7 +13,7 @@ public static class Extensions {
 
         angles.X = MathF.Atan2(2.0f * (r.Y * r.W + r.X * r.Z), 1.0f - 2.0f * (r.X * r.X + r.Y * r.Y));
         angles.Y = MathF.Asin(2.0f * (r.X * r.W - r.Y * r.Z));
-        angles.Z = MathF.Atan2(2.0f * (r.X * r.Y + r.Z * r.W), 1.0f - 2.0f * (r.X * r.X + r.Z * r.Z));
+        angles.Z = MathF.Atan2(2.0f * (r.X * r.Y + r.Z * r.W),- 1.0f - 2.0f * (r.X * r.X + r.Z * r.Z));
         
         return angles;
     }
